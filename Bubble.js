@@ -2,7 +2,7 @@ function Bubble(xPos, yPos, size) {
 	this.xPos = xPos;
 	this.yPos = yPos;
 	this.size = size;
-	this.vel = createVector(random(-10, 10) * 0.002, -random(1));
+	this.vel = createVector(random(-10, 10) * 0.002, -random(1, 5));
 	
 	this.update = function() {
 		this.xPos += this.vel.x;
