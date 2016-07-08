@@ -1,7 +1,11 @@
 var bubbles = [];
 
+var button1;
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  
+  //button1 = createDiv();
   
 }
 
@@ -29,7 +33,7 @@ function draw() {
 		
 	}
 	
-	console.log("bubble count = " + bubbles.length);
+	// console.log("bubble count = " + bubbles.length);
 }
 
 function windowResized() {
