@@ -1,83 +1,82 @@
-var bubbles = [];
+var labelFont;
+var player;
+var level;
 
-var addTileButton;
-var tileTextField;
-var tileWidthField;
-var tileHeightField;
-var tileXPosField;
-var tileYPosField;
+var highScore = 0;
+var score = 0;
 
-var selectedTile;
-var tiles = [];
+var startButton;
+var gameOver = true;
+
+function preload() {
+	labelFont = loadFont("font/Vinegar Stroke.ttf");
+}
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-  
-	tileTextField = new InputField(20, 20, "Tile Text:", "Tile");
-	tileWidthField = new InputField(20, 40, "Tile Width", "200");
-	tileHeightField = new InputField(20, 60, "Tile Height", "200");
+	createCanvas(720, 480);
+
+	startButton = createButton("Start Game");
+	startButton.size(300, 60);
+	startButton.addClass("hvr-grow-shadow");
+	startButton.position(width / 2 - 150, height / 2);
+	startButton.mousePressed(startGame);
+
+}
+
+function startGame() {
+	level = new Level(labelFont);
+	player = new Player(level);
 	
-	tileXPosField = new InputField(20, 80, "Tile X Pos", "0");
-	tileYPosField = new InputField(20, 100, "Tile Y Pos", "0");
-
-	addTileButton = createButton("Add");
-	addTileButton.position(20, 120);
-	addTileButton.mousePressed(addNewTile);
-
+	gameOver = false;
+	level.start(player);
+	startButton.hide();
 }
 
 function draw() {
-	background(18, 52, 86);
-	
-	//Random placement of bubbles
-	if (random(1) < 0.01) {
-		bubbles.push(new Bubble(random(0, width), height, random(50, 100)));
-	}
-	
-	for (var i=0; i<bubbles.length; i++) {
-		bubbles[i].update();
-		bubbles[i].render();
-		
-	}
-	
-	//Check if bubbles can be remove
-	for (var i=bubbles.length-1; i>=0; i--) {
-		
-		if (bubbles[i].isDead()) {
-			bubbles.splice(i, 1);
+	background(41, 128, 185, 80);
+
+	angleMode(DEGREES);
+	rectMode(CENTER);
+
+	if (!gameOver) {
+		level.update();
+		player.update();
+
+		level.render();
+		player.render();
+
+		score = level.getScore();
+
+		if (level.hasCollision()) {
+			gameOver = true;
+			startButton.show();
 			
+			if (level.getScore() > highScore) {
+				highScore = level.getScore();	
+			}
+			
+
 		}
-		
 	}
-	
-	if (selectedTile != null) {
-		// console.log("width: " + );
-		selectedTile.position(mouseX - selectedTile.width / 2, mouseY - selectedTile.height / 2);
 
+	fill(255);
+	stroke(243, 156, 218);
+	strokeWeight(3);
+	textFont(labelFont);
+	textStyle(BOLD);
+	textSize(34);
+
+	textAlign(RIGHT);
+	text("Highscore: " + highScore, 220, 40);
+
+	textAlign(LEFT);
+	text("Score: " + score, width - 180, 40);
+
+}
+
+function mousePressed() {
+	if (!gameOver) {
+		player.jump();		
 	}
-	
-	// console.log("bubble count = " + bubbles.length);
-}
 
-function addNewTile() {
-	var tile = new TileButton(tileWidthField.getValue(), 
-	tileHeightField.getValue(), tileTextField.getValue());
-	tile.centerAt(0, 0);
-	tile.addTouchDownListener(selectTile);
-	tile.addTouchUpListener(unselectTile);
-	tiles.push(tile);
-	
-}
-
-function selectTile() {
-	selectedTile = this;
-}
-
-function unselectTile() {
-	selectedTile = null;
-
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
 }
