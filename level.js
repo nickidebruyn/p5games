@@ -1,7 +1,7 @@
 function Level(font) {
 	this.player = null;
 	this.font = font;
-	this.levelString = "Ludum           Dare         36          Prepare            your           battle        stations             Get          ready           for        a          stressful         time" +
+	this.levelString = "    Ludum           Dare         36          Prepare            your           battle        stations             Get          ready           for        a          stressful         time" +
 	"         See            how        good            you     can                  be      in                48              hour         jam";
 	this.floorHeight = 80;
 	this.obstacles = [];
@@ -35,6 +35,10 @@ function Level(font) {
 
 				this.obstacleIndex++;
 				this.score++;
+				
+				if (this.obstacleIndex >= this.levelString.length) {
+			this.obstacleIndex = 0;
+				}
 
 			}
 
