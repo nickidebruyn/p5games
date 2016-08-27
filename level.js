@@ -1,8 +1,8 @@
 function Level(font) {
+	this.ancient_technology = ["VCR", "Cassette", "CD", "Delorean", "CRT", "FTP", "CVS", "BetaMax", "Polaroid", "Ceefax", "PDA", "Pager", "Walkman", "Discman"]
 	this.player = null;
 	this.font = font;
-	this.levelString = "    Ludum           Dare         36          Prepare            your           battle        stations             Get          ready           for        a          stressful         time" +
-	"         See            how        good            you     can                  be      in                48              hour         jam";
+	this.levelString = shuffle(this.ancient_technology).join("          ");
 	this.floorHeight = 80;
 	this.obstacles = [];
 	this.obstacleAddCounter = 1;
