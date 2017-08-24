@@ -2,69 +2,176 @@ var gameEngine;
 var lastItem;
 var crateImage;
 var ballImage;
+var playerImage;
+var smokeImage;
+var ringImage;
+var bladeImage;
+var platformImage;
+var platformStoneImage;
+var groundLeftImage;
+var groundRightImage;
+var groundCenterImage;
+var sideLeftImage;
+var sideRightImage;
 
 var pickedSprite;
 var movePlatformSprite;
-var platformMoveSpeed = 0.8;
-var platformMoveDistance = 150;
-var fanSprite1;
-var fanSprite2;
-var moveSpeed = 3;
+var platformMoveSpeed = 0.6;
+var platformMoveDistance = 80;
+var bladeSprite;
+var player;
+var moveSpeed = 4;
 var smokeParticleSystem;
-var explosionParticleSystem;
-var smokeImage;
+var onGround = false;
+var bombInterval = 100;
 
 function preload() {
-  crateImage = loadImage("crate.jpg");
-  ballImage = loadImage("ball.png");
-  smokeImage = loadImage("smoke.png");
+  crateImage = loadImage("images/crate.png");
+  ballImage = loadImage("images/spikeball.png");
+  playerImage = loadImage("images/player.png");
+  smokeImage = loadImage("images/smoke.png");
+  platformImage = loadImage("images/platform.png");
+  platformStoneImage = loadImage("images/platform-stone.png");
+  ringImage = loadImage("images/ring.png");
+  bladeImage = loadImage("images/blade.png");
+  
+  groundLeftImage = loadImage("images/ground-left.png");
+  groundRightImage = loadImage("images/ground-right.png");
+  groundCenterImage = loadImage("images/ground-center.png");
+  sideLeftImage = loadImage("images/side-left.png");
+  sideRightImage = loadImage("images/side-right.png");
 }
 
 function setup() { 
-  createCanvas(800, 600);
+  createCanvas(800, 480);
   
   gameEngine = new GameEngine();
   gameEngine.load();
   
-  //Load the sprites and game objects
-  gameEngine.addSprite(new BoxSprite(null, width/2, height-10, 0, width, 20, {isStatic: true, friction: 1}));
-  gameEngine.addSprite(new BoxSprite(null, 5, height/2, 0, 10, height, {isStatic: true, friction: 1}));
-  gameEngine.addSprite(new BoxSprite(null, width-5, height/2, 0, 10, height, {isStatic: true, friction: 1}));
+  //This is the collision listener
+  gameEngine.addCollisionListener(function(collisionEvent) {
+  	// console.log("collisionEvent: " + collisionEvent.colliderB);
+
+  	if (collisionEvent.colliderA.getUserData("player") != null ||
+  		collisionEvent.colliderB.getUserData("player") != null) {
+  		onGround = true;
+  	}
+  	
+  	if (collisionEvent.colliderA.getUserData("bomb") != null) {
+  		collisionEvent.colliderA.destroy();
+  	}
+  	
+  	if (collisionEvent.colliderB.getUserData("bomb") != null) {
+  		collisionEvent.colliderB.destroy();
+  	}
+  });
   
+  //gameEngine.setGravity(0, 1.5);
+  groundHeight = height-30;
+  groundSize = 64;
+  
+  //Load the terrain sprites and game objects
+  for (var y=-64; y<height+64; y+=64) {
+  	gameEngine.addSprite(new Sprite(sideRightImage, 0, y, groundSize, groundSize, gameEngine.BOX));
+  	gameEngine.addSprite(new Sprite(sideLeftImage, width, y, groundSize, groundSize, gameEngine.BOX));
+  }
+  
+  for (var x=-64; x<width+64; x+=64) {
+  	gameEngine.addSprite(new Sprite(groundCenterImage, x, groundHeight, groundSize, groundSize, gameEngine.BOX));
+  }
+  
+  //Add crates
+	gameEngine.addSprite(new Sprite(crateImage, width/2 - 200, height-128, groundSize, groundSize, gameEngine.BOX, {isStatic: false, restitution: 0, friction: 0}))
+  
+  //gameEngine.addSprite(new Sprite(groundRightImage, width/2 - 200, height-groundHeight, 100, 100, gameEngine.BOX));
+  //gameEngine.addSprite(new Sprite(groundCenterImage, width/2 - 300, height-groundHeight, 100, 100, gameEngine.BOX));
+  //gameEngine.addSprite(new Sprite(groundCenterImage, width/2 - 400, height-groundHeight, 100, 100, gameEngine.BOX));
+  
+  //gameEngine.addSprite(new Sprite(groundLeftImage, width/2 + 200, height-groundHeight, 100, 100, gameEngine.BOX));
+  //gameEngine.addSprite(new Sprite(groundCenterImage, width/2 + 300, height-groundHeight, 100, 100, gameEngine.BOX));
+  //gameEngine.addSprite(new Sprite(groundCenterImage, width/2 + 400, height-groundHeight, 100, 100, gameEngine.BOX));
+
   //Load the platform
-  movePlatformSprite = new BoxSprite(null, width/2, height/2, 0, 100, 20, {isStatic: true, friction: 1});
+  movePlatformSprite = new Sprite(platformStoneImage, width/2, height/2+50, 100, 25, gameEngine.BOX);
   gameEngine.addSprite(movePlatformSprite);
   
-  //Load the fan sprites
-  fanSprite1 = new BoxSprite(null, 150, height/2, 0, 100, 20, {isStatic: true, friction: 1});
-  gameEngine.addSprite(fanSprite1);
-  fanSprite2 = new BoxSprite(null, width-150, height/2, 0, 100, 20, {isStatic: true, friction: 1});
-  gameEngine.addSprite(fanSprite2);
+  //Load the blade sprites
+  bladeSprite = new Sprite(bladeImage, 150, height/2, 80, 80, gameEngine.CIRCLE);
+  gameEngine.addSprite(bladeSprite);
   
   //gameEngine.addSprite(new BoxSprite(crateImage, 200, 400, 0, 70, 70, {isStatic: false, restitution: 0.1, friction: 1}));
-  gameEngine.addSprite(new CircleSprite(ballImage, width/2, 540, 0, 30, {isStatic: false, restitution: 0.5, friction: 1}));
+  player = new Sprite(playerImage, width/2-300, 340, 50, 50, gameEngine.BOX, {isStatic: false, restitution: 0.2, friction: 0.01});
+  player.setUserData("player", true);
+  gameEngine.addSprite(player);
   
-  smokeParticleSystem = new ParticleSystem(createVector(width/2, height/2-10), smokeImage);
-  smokeParticleSystem.setStartSize(30);
-  smokeParticleSystem.setEndSize(1);
-  gameEngine.addParticleSystem(smokeParticleSystem);
+  playerTail = new ParticleSystem(createVector(100, 100), smokeImage);
+  playerTail.setKillSpeed(5);
+  playerTail.setStartSize(50);
+  playerTail.setEndSize(0);
+  playerTail.setEmitterWidth(0);
+  playerTail.setEmitterHeight(0);
+  playerTail.setStartColor(color(255, 255, 0));
+  playerTail.setEndColor(color(255, 255, 222, 0));
+  playerTail.setInitialVelocity(createVector(0, 0));
+  playerTail.setVelocityVariance(0.6);
+  playerTail.setGravity(createVector(0, 0));
+  playerTail.setParticlesPerSecond(1);
+  playerTail.setEmitRate(3);
+  gameEngine.addParticleSystem(playerTail);
   
-  explosionParticleSystem = new ParticleSystem(createVector(100, 100));
-  explosionParticleSystem.setKillSpeed(10);
-  explosionParticleSystem.setStartSize(20);
-  explosionParticleSystem.setEndSize(1);
-  explosionParticleSystem.setEmitterWidth(10);
-  explosionParticleSystem.setEmitterHeight(10);
-  explosionParticleSystem.setStartColor(color(220, 220, 0));
-  explosionParticleSystem.setEndColor(color(220, 220, 220, 0));
-  explosionParticleSystem.setInitialVelocity(createVector(0, 0));
-  explosionParticleSystem.setVelocityVariance(3);
-  explosionParticleSystem.setGravity(createVector(0, 0.3));
-  explosionParticleSystem.setParticlesPerSecond(50);
-  explosionParticleSystem.setEmitRate(200);
-  gameEngine.addParticleSystem(explosionParticleSystem);
+  player.attachChild(playerTail);
+  
+  //Waterfall
+  waterfallParticleSystem = new ParticleSystem(createVector(width-100, 100));
+  waterfallParticleSystem.setKillSpeed(3.2);
+  waterfallParticleSystem.setStartSize(20);
+  waterfallParticleSystem.setEndSize(50);
+  waterfallParticleSystem.setEmitterWidth(60);
+  waterfallParticleSystem.setEmitterHeight(2);
+  waterfallParticleSystem.setStartColor(color(255, 255, 255, 100));
+  waterfallParticleSystem.setEndColor(color(42, 107, 162, 20));
+  waterfallParticleSystem.setInitialVelocity(createVector(0, 0));
+  waterfallParticleSystem.setVelocityVariance(0.1);
+  waterfallParticleSystem.setGravity(createVector(0, 0.1));
+  waterfallParticleSystem.setParticlesPerSecond(5);
+  waterfallParticleSystem.setEmitRate(1);
+  gameEngine.addParticleSystem(waterfallParticleSystem);
 
   gameEngine.start();
+}
+
+function addBomb() {
+	
+	var xPos = random(64, width-64);
+	bomb = new Sprite(null, xPos, 0, 20, 20, gameEngine.CIRCLE, {isStatic: false, restitution: 0.2, friction: 0.01});
+  	bomb.setUserData("bomb", true);
+  	gameEngine.addSprite(bomb);
+  	
+  	// bomb.setMass(random(1, 10));
+  	
+  	if (xPos< width/2) {
+  		bomb.setVelocity(random(0, 10), 0);
+  		
+  	} else {
+  		bomb.setVelocity(random(-10, 0), 0);
+  	}
+  
+  	bombTail = new ParticleSystem(createVector(100, 100), smokeImage);
+  	bombTail.setKillSpeed(15);
+  	bombTail.setStartSize(50);
+  	bombTail.setEndSize(3);
+  	bombTail.setEmitterWidth(0);
+  	bombTail.setEmitterHeight(0);
+  	bombTail.setStartColor(color(255, 128, 0));
+  	bombTail.setEndColor(color(255, 255, 0));
+  	bombTail.setInitialVelocity(createVector(0, 0));
+  	bombTail.setVelocityVariance(0.3);
+  	bombTail.setGravity(createVector(0, 0));
+  	bombTail.setParticlesPerSecond(1);
+  	bombTail.setEmitRate(2);
+  	gameEngine.addParticleSystem(bombTail);
+  
+  	bomb.attachChild(bombTail);
 }
 
 function mouseReleased() {
@@ -72,8 +179,11 @@ function mouseReleased() {
 }
 
 function mouseDragged() {
-	if (pickedSprite != null) {
-		// pickedSprite.clearForces();
+	if (pickedSprite != null && mouseButton == RIGHT) {
+		if (pickedSprite.clearForces) {
+			pickedSprite.clearForces();
+		}
+		
 		pickedSprite.setPosition(mouseX, mouseY);
 	}
 }
@@ -82,13 +192,17 @@ function mousePressed() {
 	
 	if (mouseButton == RIGHT) {
 		if (gameEngine.collisionsAtMouse().length > 0) {
-			pickedSprite = gameEngine.collisionsAtMouse()[gameEngine.collisionsAtMouse().length-1];
-			console.log(pickedSprite);
+			var picked = gameEngine.collisionsAtMouse()[gameEngine.collisionsAtMouse().length-1];
+			if (picked != player) {
+				pickedSprite = picked;
+			}
+
 		}
 	}
 
 	if (mouseButton == LEFT) {
-		var ball = new CircleSprite(ballImage, mouseX, mouseY, 0, random(15, 25), {isStatic: false, restitution: 0.5, friction: 0.5});
+		var size = random(30, 60);
+		var ball = new Sprite(ballImage, mouseX, mouseY, size, size, gameEngine.CIRCLE, {isStatic: false, restitution: 0.5, friction: 0.5});
 		gameEngine.addSprite(ball);
 		
 		pickedSprite.link(ball, dist(mouseX, mouseY, pickedSprite.getPosition().x, pickedSprite.getPosition().y), 0.2);
@@ -97,14 +211,19 @@ function mousePressed() {
 }
 
 function draw() {
-	background(110,110,110);
+	background(200,234,255);
 	
 	//Update the gameEngine
 	gameEngine.update();
 	
+	//Check when to add bombs
+	if (frameCount % bombInterval == 0) {
+		addBomb();
+		bombInterval = floor(random(200, 500));
+	}
+	
 	//Rotate the fan sprites
-	fanSprite1.rotate(5);
-	fanSprite2.rotate(-5);
+	bladeSprite.rotate(-8);
 
 	//Move the platform
 	movePlatformSprite.move(platformMoveSpeed, 0);
@@ -113,20 +232,24 @@ function draw() {
   					platformMoveSpeed = -platformMoveSpeed;
   					
   	}
+  	
+  	player.setAngle(0);
+		
+	if (keyIsDown(LEFT_ARROW)) {
+		// player.clearForces();
+		player.move(-moveSpeed, 0);
+		// player.rotate(-moveSpeed*2);
+	}
+	if (keyIsDown(RIGHT_ARROW)) {
+		// player.clearForces();
+		player.move(moveSpeed, 0);
+		// player.rotate(moveSpeed*2);
+	}
 
 	//Draw the selected Sprite
 	if (pickedSprite != null) {
 		//Sets the camera position
 		//gameEngine.setCameraPosition(pickedSprite.getPosition().x, pickedSprite.getPosition().y-100);
-		
-		if (keyIsDown(LEFT_ARROW)) {
-			pickedSprite.move(-moveSpeed, 0);
-			pickedSprite.rotate(-moveSpeed*2);
-		}
-		if (keyIsDown(RIGHT_ARROW)) {
-			pickedSprite.move(moveSpeed, 0);
-			pickedSprite.rotate(moveSpeed*2);
-		}
 
 		push();
 			translate(pickedSprite.getPosition().x, pickedSprite.getPosition().y);
@@ -141,8 +264,9 @@ function draw() {
 
 function keyPressed() {
   if (keyCode == UP_ARROW) {
-  	if (pickedSprite != null) {
-  		pickedSprite.applyForce(0, -0.12);
+  	if (player != null && onGround) {
+  		player.applyForce(0, -0.1);
+  		onGround = false
   	}
   }
   

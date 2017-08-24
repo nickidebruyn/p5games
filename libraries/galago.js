@@ -11,21 +11,38 @@ function GameEngine() {
 		 World = Matter.World,
 	 	 Bodies = Matter.Bodies,
 	 	 Body = Matter.Body,
-	 	 Constraint = Matter.Constraint;
+	 	 Constraint = Matter.Constraint,
+	 	 Events = Matter.Events;
 	var runningEngine;
 	 	 
 	//List of sprites we render using p5.js
 	var sprites = [];
 	var particleSystems = [];
 	var mouseCollisions = [];
+	var collisionListeners = [];
 	var cameraX = 0;
 	var cameraY = 0;
 	
+	//GLOBAL VARIABLED
+	this.NONE = 0;
+	this.BOX = 1;
+	this.CIRCLE = 2;
+
+	//Physics variables	
 	this.PhysicsWorld = World;
 	this.PhysicsBodies = Bodies;
 	this.PhysicsBody = Body;
 	this.PhysicsEngine = Engine;
 	this.PhysicsConstraint = Constraint;
+	
+	this.debugEnabled = false;
+	
+	//Sets the world gravity
+	this.setGravity = function(gravX, gravY) {
+		runningEngine.world.gravity.x = gravX;
+		runningEngine.world.gravity.y = gravY;
+		
+	}
 	
 	//Add a physics body
 	this.addBody = function(body) {
@@ -47,6 +64,16 @@ function GameEngine() {
 		World.remove(runningEngine.world, constraint);
 	}
 	
+	//Add a physics collision listener to the world
+	this.addCollisionListener = function(collisionListener) {
+		collisionListeners.push(collisionListener);
+	}
+	
+	//Remove a physics collision listener to the world
+	this.removeCollisionListener = function(collisionListener) {
+		collisionListeners.remove(collisionListener);
+	}
+	
 	//Add particleSystem
 	this.addParticleSystem = function(particleSystem) {
 		particleSystems.push(particleSystem);
@@ -61,7 +88,7 @@ function GameEngine() {
   		
 		//Create the physics engine
   		runningEngine = Engine.create();
-  		
+
   		//Set the camera position
   		this.setCameraPosition(width/2, height/2);
 		
@@ -75,6 +102,48 @@ function GameEngine() {
 	
 	//Should be called to start the game engine
 	this.start = function() {
+		
+		//Check if any collision in physics happend
+		Events.on(runningEngine, 'collisionStart collisionActive', function(event) {
+			var pairs = event.pairs;
+			
+			//Fire collision listeners
+			for (var c = 0; c < collisionListeners.length; c++) {
+				
+         	//Loop over all collision pairs
+        		for (var i = 0; i < pairs.length; i++) {
+            	var pair = pairs[i];
+            	
+            	//Here we have 2 collisions
+            	//console.log(pair.bodyA.id +" collided with " + pair.bodyB.id);
+            	var collisionASprite = null;
+            	var collisionBSprite = null;
+            	
+            	for (var s=0; s < sprites.length; s++) {
+						//Check for sprites
+						if (!sprites[s].isDead() && sprites[s].hasPhysics()) {
+							if (collisionASprite == null && pair.bodyA.id == sprites[s].body.id) {
+								collisionASprite = sprites[s];
+							} else if (collisionBSprite == null && pair.bodyB.id == sprites[s].body.id) {
+								collisionBSprite = sprites[s];
+							} else if (collisionASprite != null && collisionBSprite != null) {
+								break;
+							}
+						}
+					}
+            	
+            	if (collisionASprite != null && collisionBSprite != null) {
+            		collisionListeners[c]({
+            			colliderA: collisionASprite,
+            			colliderB: collisionBSprite
+            		});
+            	}
+
+        		}
+				
+			}
+
+    });
 		
 	}
 	
@@ -100,22 +169,6 @@ function GameEngine() {
 		//Clear collisions at mouse array
 		mouseCollisions = [];
 		
-		//Update all sprites
-		for (var i=0; i < sprites.length; i++) {
-			//Check for picks
-			var collision = sprites[i].collisionAtPoint(mouseX, mouseY);
-			if (collision) {
-				mouseCollisions.push(sprites[i]);
-			}
-			
-			//Update the sprites
-			sprites[i].update();
-			if (sprites[i].isDead()) {
-				sprites.splice(i, 1);
-				i--;
-			}
-		}
-		
 		//Update all particle systems
 		for (var i=0; i < particleSystems.length; i++) {
 			
@@ -134,106 +187,256 @@ function GameEngine() {
 			}
 		}
 		
+		
+		//Update all sprites
+		for (var i=0; i < sprites.length; i++) {
+			//Check for picks
+			var collision = sprites[i].collisionAtPoint(mouseX, mouseY);
+			if (collision) {
+				mouseCollisions.push(sprites[i]);
+			}
+			
+			//Update the sprites
+			sprites[i].update();
+			if (sprites[i].isDead()) {
+				sprites.splice(i, 1);
+				i--;
+			}
+		}
+		
+		
 		//Debug
 		// console.log(sprites.length +" - "+ runningEngine.world.bodies.length);
 	}
 }
 
-//========= BOX PHYSICS SPRITE ===========
-//This is a box type of sprite object in physics space
-function BoxSprite(initImage, initX, initY, initAngle, initWidth, initHeight, initOptions) {
+
+//========= PHYSICS SPRITE ===========
+//This is a type of sprite object that can have physics in physics space
+function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, initOptions) {
 	
 	//Local variabled of graphics box
 	this.body;
+	
+	var physicsShape = physicsShape;
 	var img = initImage;
-	var positionX = initX;
-	var positionY = initY;
+	var position = createVector(initX, initY);
+	var angle = 0;
 	var w = initWidth;
 	var h = initHeight;
 	var options = initOptions;
-	// console.log("Angle: " + initAngle);
-	options.angle = radians(initAngle);
+	if (!options) {
+		options = {isStatic: true, restitution: 0.5, friction: 0.5};
+	}
 	var dead = false;
 	var gameEngine;
 	var links = [];
+	var children = [];
+	var userData = [];
+	var collision = false;
+	
+	this.setCollision = function(col) {
+		collision = col;
+	}
+	
+	this.hasCollision = function() {
+		return collision;
+	}
+	
+	//Attach a child sprite or object to this one
+	this.attachChild = function(child) {
+		children.push(child);
+	}
+	
+	//Attach a child sprite or object to this one
+	this.detachChild = function(child) {
+		children.remove(child);
+	}
+	
+	//Make all children follow this sprite
+	var updateChildren = function(posX, posY, ang) {
+		for (var i=0; i<children.length; i++) {
+			children[i].setPosition(posX, posY);
+			children[i].setAngle(ang);
+		}
+	}
+	
+	//Add some user data to this object which will identify it
+	this.setUserData = function(code, val) {
+		userData.push({
+			code: code,
+			value: val
+		});
+	}
+	
+	//Return some user data
+	this.getUserData = function(code) {
+		var val = null;
+		for (var i=0; i<userData.length; i++) {
+			if (userData[i].code == code) {
+				val = userData[i].value;
+				break;
+			}
+		}
+		return val;
+	}
+	
+	//Determine if this sprite has physics
+	this.hasPhysics = function() {
+		return this.body;
+	}
 	
 	//Returns the position
 	this.getInitialPosition = function() {
-		return {
-			x: positionX,
-			y: positionY
-		};
+		return position;
 	}
 	
 	//Returns the position
 	this.getPosition = function() {
-		return this.body.position;
+		if (this.body) {
+			return createVector(this.body.position.x, this.body.position.y);
+		} else {
+			return position;
+		}
+		
 	}
 	
 	//Set the sprite position
 	this.setPosition = function(posX, posY) {
-		gameEngine.PhysicsBody.setPosition(this.body, {
-			x: posX,
-			y: posY
-		});
-		
+		if (this.body) {
+			gameEngine.PhysicsBody.setPosition(this.body, {
+				x: posX,
+				y: posY
+			});
+		} else {
+			position = createVector(posX, posY);
+		}
+
 	}
 	
 	//Move the sprite
 	this.move = function(amountX, amountY) {
-		var posX = this.body.position.x + amountX;
-		var posY = this.body.position.y + amountY;
+		if (this.body) {
+			var posX = this.body.position.x + amountX;
+			var posY = this.body.position.y + amountY;
 		
-		gameEngine.PhysicsBody.setPosition(this.body, {
-			x: posX,
-			y: posY
-		});
-		
+			gameEngine.PhysicsBody.setPosition(this.body, {
+				x: posX,
+				y: posY
+			});
+			
+		} else {
+			position.add(amountX, amountY);
+			
+		}
+
 	}
 	
 	//Rotates the body by a given amount
 	this.rotate = function(rotationAmount) {
-		gameEngine.PhysicsBody.rotate(this.body, radians(rotationAmount));
+		if (this.body) {
+			gameEngine.PhysicsBody.rotate(this.body, radians(rotationAmount));
+			
+		} else {
+			angle = angle + rotationAmount;
+			
+		}
+		
 	}
 	
 	//Sets the angle of this physics object
 	this.setAngle = function(angleInDegrees) {
-		gameEngine.PhysicsBody.setAngle(this.body, radians(angleInDegrees));
+		if (this.body) {
+			gameEngine.PhysicsBody.setAngle(this.body, radians(angleInDegrees));
+			
+		} else {
+			angle = angleInDegrees;
+			
+		}
+		
 	}
 	
 	//Apply a force to this physics body
 	this.applyForce = function(forceX, forceY) {
-		gameEngine.PhysicsBody.applyForce(this.body, this.body.position, {
-			x: forceX,
-			y: forceY
-		});
+		if (this.body) {
+			gameEngine.PhysicsBody.applyForce(this.body, this.body.position, {
+				x: forceX,
+				y: forceY
+			});
+		} else {
+			console.log("No body found for sprite");
+		}
+
 	}
 	
 	//Set the angular velocity
 	this.setAngularVelocity = function(angularVelocity) {
-		gameEngine.PhysicsBody.setAngularVelocity(this.body, angularVelocity);
+		if (this.body) {
+			gameEngine.PhysicsBody.setAngularVelocity(this.body, angularVelocity);
+		} else {
+			console.log("No body found for sprite");
+		}
+		
 	}
 	
 	//Set the angular velocity
 	this.setVelocity = function(velX, velY) {
-		gameEngine.PhysicsBody.setVelocity(this.body, {
-			x: velX,
-			y: velY
-		});
+		if (this.body) {
+			gameEngine.PhysicsBody.setVelocity(this.body, {
+				x: velX,
+				y: velY
+			});
+		} else {
+			console.log("No body found for sprite");
+		}
+
 	}
 
 	//Clear all physics forces
 	this.clearForces = function() {
-		gameEngine.PhysicsBody.setVelocity(this.body, {
-			x: 0,
-			y: 0
-		});
-		gameEngine.PhysicsBody.setAngularVelocity(this.body, 0);
+		if (this.body) {
+			gameEngine.PhysicsBody.setVelocity(this.body, {
+				x: 0,
+				y: 0
+			});
+			gameEngine.PhysicsBody.setAngularVelocity(this.body, 0);
+		} else {
+			console.log("No body found for sprite");
+		}
+
 	}
 	
 	//Sets the density of the body
 	this.setDensity = function(density) {
-		gameEngine.PhysicsBody.setDensity(this.body, density);
+		if (this.body) {
+			gameEngine.PhysicsBody.setDensity(this.body, density);
+			
+		} else {
+			console.log("No body found for sprite");
+		}
+		
+	}
+	
+	//Sets the mass of the body
+	this.setMass = function(mass) {
+		if (this.body) {
+			gameEngine.PhysicsBody.setMass(this.body, mass);
+
+		} else {
+			console.log("No body found for sprite");
+		}
+		
+	}
+	
+	//Sets the static property
+	this.setStatic = function(stat) {
+		if (this.body) {
+			gameEngine.PhysicsBody.setStatic(this.body, stat);
+
+		} else {
+			console.log("No body found for sprite");
+		}
+		
 	}
 	
 	//Check if 2 points are in the object
@@ -253,45 +456,70 @@ function BoxSprite(initImage, initX, initY, initAngle, initWidth, initHeight, in
 	this.load = function(engine) {
 		gameEngine = engine;
 		
-		//Local body of the physics box
-		this.body = gameEngine.PhysicsBodies.rectangle(positionX, positionY, w, h, options);
-		
-		//Adding body to the world
-		gameEngine.addBody(this.body);
+		if (physicsShape == gameEngine.BOX) {
+			//Local body of the physics box
+			this.body = gameEngine.PhysicsBodies.rectangle(position.x, position.y, w, h, options);
+			//Adding body to the world
+			gameEngine.addBody(this.body);
+			
+		} else if (physicsShape == gameEngine.CIRCLE) {
+			//Local body of the physics box
+			this.body = gameEngine.PhysicsBodies.circle(position.x, position.y, w/2, options);
+			//Adding body to the world
+			gameEngine.addBody(this.body);			
+		}
+
 		
 	}
 	
 	this.link = function(targetSprite, length, stiffness, offsetX, offsetY, targetOffsetX, targetOffsetY) {
-		var constraintOptions = {
-			bodyA: this.body,
-			bodyB: targetSprite.body,
-			length: length,
-			stiffness: stiffness,
-		}
-		// console.log("log: " + targetOffsetX);
-		if (offsetX != undefined && offsetY != undefined) {
-			constraintOptions.pointA = {
-				x: offsetX,
-				y: offsetY
+		if (this.body) {
+			var constraintOptions = {
+				bodyA: this.body,
+				bodyB: targetSprite.body,
+				length: length,
+				stiffness: stiffness,
 			}
-		}
-		if (targetOffsetX != undefined && targetOffsetY != undefined) {
-			constraintOptions.pointB = {
-				x: targetOffsetX,
-				y: targetOffsetY
+			// console.log("log: " + targetOffsetX);
+			if (offsetX != undefined && offsetY != undefined) {
+				constraintOptions.pointA = {
+					x: offsetX,
+					y: offsetY
+				}
 			}
+			if (targetOffsetX != undefined && targetOffsetY != undefined) {
+				constraintOptions.pointB = {
+					x: targetOffsetX,
+					y: targetOffsetY
+				}
+			}
+			var con = gameEngine.PhysicsConstraint.create(constraintOptions);
+			gameEngine.addConstraint(con);
+			links.push(con);
+			
+		} else {
+			console.log("No body found for sprite");
 		}
-		var con = gameEngine.PhysicsConstraint.create(constraintOptions);
-		gameEngine.addConstraint(con);
-		links.push(con);
+
 	}
 
 	this.update = function() {
 		push();
 		
-			//Move and rotate to physics world
-			translate(this.body.position.x, this.body.position.y);
-			rotate(this.body.angle);
+			//Move in world
+			if (this.body) {
+				//Move and rotate to physics world
+				translate(this.body.position.x, this.body.position.y);
+				rotate(this.body.angle);				
+				updateChildren(this.body.position.x, this.body.position.y, degrees(this.body.angle));
+				
+			} else {
+				//Move and rotate the sprite
+				translate(position.x, position.y);
+				rotate(radians(angle));
+				updateChildren(position.x, position.y, angle);
+			}
+
 			
 			//Draw the image
 			if (img) {
@@ -299,39 +527,59 @@ function BoxSprite(initImage, initX, initY, initAngle, initWidth, initHeight, in
 				
 			}
 			
-			//Show the debug info
-			noFill();
-			if (options != undefined && options.isStatic) {
-				stroke(0, 0, 200);
-			} else {
-				stroke(0, 200, 0);
+			//Show the debug info of the physics body
+			if (gameEngine.debugEnabled && this.body) {
+				noFill();
+				if (options != undefined && options.isStatic) {
+					stroke(0, 0, 200);
+				} else {
+					stroke(0, 200, 0);
+				}
+				if (physicsShape == gameEngine.BOX) {
+					rect(0, 0, w, h);	
+				} else if (physicsShape == gameEngine.CIRCLE) {
+					ellipse(0, 0, w);
+				}
+				
 			}
-			rect(0, 0, w, h);
-			
+
 		pop();
 		
-		push();
-			//Draw all links
-			for (var i=0; i<links.length; i++) {
-				var con = links[i];
-				stroke(200, 0, 200);
-				line(con.bodyA.position.x+con.pointA.x, 
-						con.bodyA.position.y+con.pointA.y, 
-						con.bodyB.position.x+con.pointB.x, 
-						con.bodyB.position.y+con.pointB.y);
-			}
-		pop();
+		//Draw lines of any connected or joint bodies
+		if (gameEngine.debugEnabled && this.body) {
+			push();
+				//Draw all links
+				for (var i=0; i<links.length; i++) {
+					var con = links[i];
+					stroke(200, 0, 200);
+					line(con.bodyA.position.x+con.pointA.x, 
+							con.bodyA.position.y+con.pointA.y, 
+							con.bodyB.position.x+con.pointB.x, 
+							con.bodyB.position.y+con.pointB.y);
+				}
+			pop();
+		}
+
 	}
 	
 	//This function should be called when you want to destroy a sprite
 	this.destroy = function() {
-		//Remove the constraints/joints
-		for (var i=0; i<links.length; i++) {
-			var con = links[i];
-			gameEngine.removeConstraint(con);
+		if (this.body) {
+			//Remove the constraints/joints
+			for (var i=0; i<links.length; i++) {
+				var con = links[i];
+				gameEngine.removeConstraint(con);
+					
+			}
+			gameEngine.removeBody(this.body);
+		}
+		
+		//Remove the attached children
+		for (var i=0; i<children.length; i++) {
+			children[i].destroy();
 				
 		}
-		gameEngine.removeBody(this.body);
+
 		dead = true;
 	}
 	
@@ -340,207 +588,6 @@ function BoxSprite(initImage, initX, initY, initAngle, initWidth, initHeight, in
 		return dead;
 	}
 }
-
-//========= CIRCLE PHYSICS SPRITE ===========
-//This is a circle type of sprite object in physics space
-function CircleSprite(initImage, initX, initY, initAngle, initRadius, initOptions) {
-	
-	//Local variabled of graphics box
-	this.body = null;
-	var img = initImage;
-	var positionX = initX;
-	var positionY = initY;
-	var r = initRadius;
-	var options = initOptions;
-	options.angle = radians(initAngle);
-	var dead = false;
-	var gameEngine;
-	var links = [];
-	
-	//Returns the position
-	this.getInitialPosition = function() {
-		return {
-			x: positionX,
-			y: positionY
-		};
-	}
-	
-	//Returns the position
-	this.getPosition = function() {
-		return this.body.position;
-	}
-	
-	//Set the sprite position
-	this.setPosition = function(posX, posY) {
-		gameEngine.PhysicsBody.setPosition(this.body, {
-			x: posX,
-			y: posY
-		});
-		
-	}
-	
-	//Move the sprite
-	this.move = function(amountX, amountY) {
-		var posX = this.body.position.x + amountX;
-		var posY = this.body.position.y + amountY;
-		
-		gameEngine.PhysicsBody.setPosition(this.body, {
-			x: posX,
-			y: posY
-		});
-		
-	}
-	
-	//Rotates the body by a given amount
-	this.rotate = function(rotationAmount) {
-		gameEngine.PhysicsBody.rotate(this.body, radians(rotationAmount));
-	}
-	
-	//Sets the angle of this physics object
-	this.setAngle = function(angleInDegrees) {
-		gameEngine.PhysicsBody.setAngle(this.body, radians(angleInDegrees));
-	}
-	
-	//Apply a force to this physics body
-	this.applyForce = function(forceX, forceY) {
-		gameEngine.PhysicsBody.applyForce(this.body, this.body.position, {
-			x: forceX,
-			y: forceY
-		});
-	}
-	
-	//Set the angular velocity
-	this.setAngularVelocity = function(angularVelocity) {
-		gameEngine.PhysicsBody.setAngularVelocity(this.body, angularVelocity);
-	}
-	
-	//Set the angular velocity
-	this.setVelocity = function(velX, velY) {
-		gameEngine.PhysicsBody.setVelocity(this.body, {
-			x: velX,
-			y: velY
-		});
-	}
-
-	//Clear all physics forces
-	this.clearForces = function() {
-		gameEngine.PhysicsBody.setVelocity(this.body, {
-			x: 0,
-			y: 0
-		});
-		gameEngine.PhysicsBody.setAngularVelocity(this.body, 0);
-	}
-	
-	//Sets the density of the body
-	this.setDensity = function(density) {
-		gameEngine.PhysicsBody.setDensity(this.body, density);
-	}
-	
-	//Check if 2 points are in the object
-	this.collisionAtPoint = function(pointX, pointY) {
-		if (pointX > (this.getPosition().x-r) &&
-			 pointX < (this.getPosition().x+r) &&
-			 pointY > (this.getPosition().y-r) &&
-			 pointY < (this.getPosition().y+r)) {
-			return true;
-		} else {
-			return false;
-		}
-		
-	}
-	
-	this.load = function(engine) {
-		gameEngine = engine;
-		
-		//Local body of the physics box
-		this.body = gameEngine.PhysicsBodies.circle(positionX, positionY, r, options);
-		
-		//Adding body to the world
-		gameEngine.addBody(this.body);
-		
-	}
-	
-	this.link = function(targetSprite, length, stiffness, offsetX, offsetY, targetOffsetX, targetOffsetY) {
-		var constraintOptions = {
-			bodyA: this.body,
-			bodyB: targetSprite.body,
-			length: length,
-			stiffness: stiffness
-		}
-		if (offsetX != undefined && offsetY != undefined) {
-			constraintOptions.pointA = {
-				x: offsetX,
-				y: offsetY
-			}
-		}
-		if (targetOffsetX != undefined && targetOffsetY != undefined) {
-			constraintOptions.pointB = {
-				x: targetOffsetX,
-				y: targetOffsetY
-			}
-		}
-		
-		var con = gameEngine.PhysicsConstraint.create(constraintOptions);
-		gameEngine.addConstraint(con);
-		links.push(con);
-	}
-	
-	this.update = function() {
-		push();
-		
-			//Move and rotate to physics world
-			translate(this.body.position.x, this.body.position.y);
-			rotate(this.body.angle);
-			
-			//Draw the image
-			if (img) {
-				image(img, 0, 0, r*2, r*2);
-				
-			}
-			
-			//Show the debug info
-			noFill();
-			if (options != undefined && options.isStatic) {
-				stroke(0, 0, 200);
-			} else {
-				stroke(0, 200, 0);
-			}
-			ellipse(0, 0, r*2);
-		pop();
-		
-		push();
-			//Draw all links
-			for (var i=0; i<links.length; i++) {
-				var con = links[i];
-				stroke(200, 0, 200);
-				line(con.bodyA.position.x+con.pointA.x, 
-						con.bodyA.position.y+con.pointA.y, 
-						con.bodyB.position.x+con.pointB.x, 
-						con.bodyB.position.y+con.pointB.y);
-			}
-		pop();
-	}
-	
-	//This function should be called when you want to destroy a sprite
-	this.destroy = function() {
-		//Remove the constraints/joints
-		for (var i=0; i<links.length; i++) {
-			var con = links[i];
-			gameEngine.removeConstraint(con);
-				
-		}
-		gameEngine.removeBody(this.body);
-		dead = true;
-	}
-	
-	//Returns if the sprite is dead
-	this.isDead = function() {
-		return dead;
-	}
-}
-
-
-
 
 
 
@@ -565,6 +612,28 @@ var ParticleSystem = function (position, particleImg) {
   	this.emitRate = 1;        //This is the rate at which particles should be genetated
   	this.started = false;
   	var dead = false;
+	var userData = [];
+	
+	//Add some user data to this object which will identify it
+	this.setUserData = function(code, val) {
+		userData.push({
+			code: code,
+			value: val
+		});
+	}
+	
+	//Return some user data
+	this.getUserData = function(code) {
+		var val = null;
+		for (var i=0; i<userData.length; i++) {
+			if (userData[i].code == code) {
+				val = userData[i].value;
+				break;
+			}
+		}
+		return val;
+	}
+  	
 
 	//Returns the position
 	this.getPosition = function() {
@@ -574,6 +643,10 @@ var ParticleSystem = function (position, particleImg) {
 	//Set the sprite position
 	this.setPosition = function(posX, posY) {
 		this.origin = createVector(posX, posY);
+		
+	}
+	
+	this.setAngle = function(angleInDegrees) {
 		
 	}
 	
@@ -600,6 +673,11 @@ var ParticleSystem = function (position, particleImg) {
 	//Returns if the particle system is dead
 	this.isDead = function() {
 		return dead;
+	}
+	
+	//Determine if this sprite has physics
+	this.hasPhysics = function() {
+		return false;
 	}
 };
 
@@ -719,10 +797,10 @@ Particle.prototype.display = function () {
   
   if (this.particleImage != undefined) {
   	var sx = this.endSize + (this.startSize-this.endSize) * (this.lifespan/255);
-  	
+
   	tint(lerpColor(this.startColor, this.endColor, 1 - (this.lifespan/255)));
   	image(this.particleImage, this.position.x, this.position.y, sx, sx);
-  	
+
   } else {
   	var s = this.endSize + (this.startSize-this.endSize) * (this.lifespan/255);
   	noStroke();
