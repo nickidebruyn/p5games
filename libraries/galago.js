@@ -158,6 +158,11 @@ function GameEngine() {
 		cameraY = posY;
 	}
 	
+	//Set the camera position in the world
+	this.getCameraPosition = function() {
+		return createVector(cameraX, cameraY);
+	}
+	
 	//We call this to update the physics engine and render the game graphics
 	this.update = function() {
 		//Update the engine manually

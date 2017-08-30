@@ -121,6 +121,12 @@ function setup() {
   
   player.attachChild(playerTail);
   
+  platformSprite = new Sprite(platformStoneImage, width-100, 100, 100, 25, gameEngine.BOX);
+  gameEngine.addSprite(platformSprite);
+  
+  platformSprite = new Sprite(platformStoneImage, width-300, 200, 100, 25, gameEngine.BOX);
+  gameEngine.addSprite(platformSprite);
+  
   //Waterfall
   waterfallParticleSystem = new ParticleSystem(createVector(width-100, 100));
   waterfallParticleSystem.setKillSpeed(3.2);
@@ -234,6 +240,7 @@ function draw() {
   	}
   	
   	player.setAngle(0);
+  	gameEngine.setCameraPosition(player.getPosition().x, lerp(gameEngine.getCameraPosition().y, player.getPosition().y-20, 0.06));
 		
 	if (keyIsDown(LEFT_ARROW)) {
 		// player.clearForces();
