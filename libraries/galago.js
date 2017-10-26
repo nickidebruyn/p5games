@@ -239,6 +239,58 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var children = [];
 	var userData = [];
 	var collision = false;
+	var animations = [];
+	var currentAnimation;
+	var animationSpeed;
+	var animationIndex = 0;
+	var animationLoop = true;
+	var animationReverse = false;
+	var animationIncrease = true;
+	
+	this.addAnimation = function(name, animationImages) {
+		var anim = {
+			"name" : name,
+			"images" : animationImages
+		}
+		animations.push(anim);
+		
+	}
+	
+	this.playAnimation = function(name, speed, loopAnim, reverseAnim) {
+		
+		if (name == undefined) {
+			return;
+		}
+		
+		if (speed == undefined) {
+			speed = 5;
+		} else {
+			animationSpeed = speed;
+		}
+		
+		if (loopAnim == undefined) {
+			animationLoop = true;
+		} else {
+			animationLoop = loopAnim;
+		}
+		
+		if (reverseAnim == undefined) {
+			animationReverse = false;
+		} else {
+			animationReverse = reverseAnim;
+		}
+		
+		animationIncrease = true
+		
+		//find the animation
+		for (var i=0; i<animations.length; i++) {
+			if (animations[i].name == name) {
+				currentAnimation = animations[i];
+				animationIndex = 0;
+				break;
+			}
+		}
+	}
 	
 	this.setCollision = function(col) {
 		collision = col;
@@ -527,10 +579,48 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 
 			
 			//Draw the image
-			if (img) {
-				image(img, 0, 0, w, h);
+			if (currentAnimation) {
+				// console.log("currentAnimation: " + currentAnimation.name);
 				
+				if (frameCount % animationSpeed == 0) {
+					if (animationReverse) {
+						
+						if (animationIncrease) {
+							animationIndex ++;
+							if (animationIndex >= currentAnimation.images.length) {
+								animationIndex = currentAnimation.images.length - 1;
+								animationIncrease = false;
+							}	
+						} else {
+							animationIndex --;
+							if (animationIndex <= 0) {
+								animationIndex = 0;
+								animationIncrease = true;
+							}	
+							
+						}
+						
+					} else {
+						animationIndex ++;
+						if (animationIndex >= currentAnimation.images.length) {
+						
+							if (animationLoop) {
+								animationIndex = 0;
+							} else {
+								currentAnimation = null;
+							}
+						}	
+					}
+					
+
+				}
+				
+				image(currentAnimation.images[animationIndex], 0, 0, w, h);
+				
+			} else if (img) {
+				image(img, 0, 0, w, h);		
 			}
+
 			
 			//Show the debug info of the physics body
 			if (gameEngine.debugEnabled && this.body) {

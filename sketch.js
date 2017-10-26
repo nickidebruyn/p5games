@@ -14,6 +14,15 @@ var groundCenterImage;
 var sideLeftImage;
 var sideRightImage;
 
+var spider1Image;
+var spider2Image;
+var spider3Image;
+var spider4Image;
+var spider5Image;
+var spider6Image;
+var spider7Image;
+
+
 var pickedSprite;
 var movePlatformSprite;
 var platformMoveSpeed = 0.6;
@@ -40,6 +49,14 @@ function preload() {
   groundCenterImage = loadImage("images/ground-center.png");
   sideLeftImage = loadImage("images/side-left.png");
   sideRightImage = loadImage("images/side-right.png");
+  
+  spider1Image = loadImage("images/spider-sprite1.png");
+  spider2Image = loadImage("images/spider-sprite2.png");
+  spider3Image = loadImage("images/spider-sprite3.png");
+  spider4Image = loadImage("images/spider-sprite4.png");
+  spider5Image = loadImage("images/spider-sprite5.png");
+  spider6Image = loadImage("images/spider-sprite6.png");
+  spider7Image = loadImage("images/spider-sprite7.png");
 }
 
 function setup() { 
@@ -82,6 +99,11 @@ function setup() {
   
   //Add crates
 	gameEngine.addSprite(new Sprite(crateImage, width/2 - 200, height-128, groundSize, groundSize, gameEngine.BOX, {isStatic: false, restitution: 0, friction: 0}))
+	
+	var spider = new Sprite(spider1Image, width/2, height/2, 60, 60)
+	spider.addAnimation("walk", [spider1Image, spider2Image, spider3Image, spider4Image, spider5Image, spider6Image, spider7Image]);
+	spider.playAnimation("walk", 5);
+	gameEngine.addSprite(spider);
   
   //gameEngine.addSprite(new Sprite(groundRightImage, width/2 - 200, height-groundHeight, 100, 100, gameEngine.BOX));
   //gameEngine.addSprite(new Sprite(groundCenterImage, width/2 - 300, height-groundHeight, 100, 100, gameEngine.BOX));
