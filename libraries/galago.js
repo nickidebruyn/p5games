@@ -569,6 +569,16 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 				return angle;
 			}		
 	}
+	
+	this.getAngle = function() {
+		
+			if (this.body) {
+				return degrees(this.body.angle);
+
+			} else {
+				return angle;
+			}		
+	}
 
 	this.update = function() {
 		push();
