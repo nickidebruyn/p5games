@@ -559,6 +559,16 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		}
 
 	}
+	
+	this.getRotation = function() {
+		
+			if (this.body) {
+				return degrees(this.body.angle);
+
+			} else {
+				return angle;
+			}		
+	}
 
 	this.update = function() {
 		push();

@@ -21,7 +21,7 @@ var spider4Image;
 var spider5Image;
 var spider6Image;
 var spider7Image;
-
+var spider;
 
 var pickedSprite;
 var movePlatformSprite;
@@ -100,7 +100,7 @@ function setup() {
   //Add crates
 	gameEngine.addSprite(new Sprite(crateImage, width/2 - 200, height-128, groundSize, groundSize, gameEngine.BOX, {isStatic: false, restitution: 0, friction: 0}))
 	
-	var spider = new Sprite(spider1Image, width/2, height/2, 60, 60)
+	spider = new Sprite(spider1Image, width/2, height/2, 60, 60)
 	spider.addAnimation("walk", [spider1Image, spider2Image, spider3Image, spider4Image, spider5Image, spider6Image, spider7Image]);
 	spider.playAnimation("walk", 5);
 	gameEngine.addSprite(spider);
@@ -288,6 +288,9 @@ function draw() {
 			ellipse(0, 0, 50);
 		pop();
 	}
+	
+	spider.rotate(1);
+	console.log("Spider angle: " + spider.getRotation());
 
 }
 
