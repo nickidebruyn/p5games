@@ -60,7 +60,7 @@ function preload() {
 }
 
 function setup() { 
-  createCanvas(800, 480);
+  createCanvas(1024, 768);
   
   gameEngine = new GameEngine();
   gameEngine.load();
@@ -125,6 +125,7 @@ function setup() {
   player = new Sprite(playerImage, width/2-300, 340, 50, 50, gameEngine.BOX, {isStatic: false, restitution: 0.2, friction: 0.01});
   player.setUserData("player", true);
   gameEngine.addSprite(player);
+  player.setController(callBackPlayer);
   
   playerTail = new ParticleSystem(createVector(100, 100), smokeImage);
   playerTail.setKillSpeed(5);
@@ -166,6 +167,10 @@ function setup() {
   gameEngine.addParticleSystem(waterfallParticleSystem);
 
   gameEngine.start();
+}
+
+function callBackPlayer(spriteObj) {
+	console.log("callback: " + spriteObj.getPosition());
 }
 
 function addBomb() {

@@ -246,6 +246,11 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var animationLoop = true;
 	var animationReverse = false;
 	var animationIncrease = true;
+	var controller;
+	
+	this.setController = function(controllerFunction) {
+		this.controller = controllerFunction;
+	}
 	
 	this.addAnimation = function(name, animationImages) {
 		var anim = {
@@ -673,6 +678,11 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 							con.bodyB.position.y+con.pointB.y);
 				}
 			pop();
+		}
+		
+		//Now we check for the controller
+		if (this.controller) {
+			this.controller(this);
 		}
 
 	}
