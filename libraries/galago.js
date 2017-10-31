@@ -738,6 +738,12 @@ var ParticleSystem = function (position, particleImg) {
   	this.started = false;
   	var dead = false;
 	var userData = [];
+	var controller;
+	
+	this.setController = function(controllerFunction) {
+		this.controller = controllerFunction;
+	}
+	
 	
 	//Add some user data to this object which will identify it
 	this.setUserData = function(code, val) {
@@ -889,6 +895,11 @@ ParticleSystem.prototype.run = function () {
     	}
   	}
   	pop();
+  	
+  	//Now we check for the controller
+	if (this.controller) {
+		this.controller(this);
+	}
 };
 
 // A simple Particle class
