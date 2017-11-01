@@ -20,7 +20,7 @@ function GameEngine() {
 	var sprites = [];
 	var particleSystems = [];
 	var mouseCollisions = [];
-	var collisionListeners = [];
+	// var collisionListeners = [];
 	var cameraX = 0;
 	var cameraY = 0;
 	
@@ -66,15 +66,15 @@ function GameEngine() {
 		World.remove(runningEngine.world, constraint);
 	}
 	
-	//Add a physics collision listener to the world
-	this.addCollisionListener = function(collisionListener) {
-		collisionListeners.push(collisionListener);
-	}
+	// //Add a physics collision listener to the world
+	// this.addCollisionListener = function(collisionListener) {
+	// 	collisionListeners.push(collisionListener);
+	// }
 	
-	//Remove a physics collision listener to the world
-	this.removeCollisionListener = function(collisionListener) {
-		collisionListeners.remove(collisionListener);
-	}
+	// //Remove a physics collision listener to the world
+	// this.removeCollisionListener = function(collisionListener) {
+	// 	collisionListeners.remove(collisionListener);
+	// }
 	
 	//Add particleSystem
 	this.addParticleSystem = function(particleSystem) {
@@ -110,9 +110,7 @@ function GameEngine() {
 			var pairs = event.pairs;
 			
 			//Fire collision listeners
-			for (var c = 0; c < collisionListeners.length; c++) {
-				
-         	//Loop over all collision pairs
+			//Loop over all collision pairs
         		for (var i = 0; i < pairs.length; i++) {
             	var pair = pairs[i];
             	
@@ -135,15 +133,47 @@ function GameEngine() {
 					}
             	
             	if (collisionASprite != null && collisionBSprite != null) {
-            		collisionListeners[c]({
-            			colliderA: collisionASprite,
-            			colliderB: collisionBSprite
-            		});
+            		collisionASprite.fireCollisionCallback(collisionASprite, collisionBSprite);
+            		collisionBSprite.fireCollisionCallback(collisionBSprite, collisionASprite);
             	}
 
         		}
+			
+			// //Fire collision listeners
+			// for (var c = 0; c < collisionListeners.length; c++) {
 				
-			}
+   //       	//Loop over all collision pairs
+   //     		for (var i = 0; i < pairs.length; i++) {
+   //          	var pair = pairs[i];
+            	
+   //          	//Here we have 2 collisions
+   //          	//console.log(pair.bodyA.id +" collided with " + pair.bodyB.id);
+   //          	var collisionASprite = null;
+   //          	var collisionBSprite = null;
+            	
+   //          	for (var s=0; s < sprites.length; s++) {
+			// 			//Check for sprites
+			// 			if (!sprites[s].isDead() && sprites[s].hasPhysics()) {
+			// 				if (collisionASprite == null && pair.bodyA.id == sprites[s].body.id) {
+			// 					collisionASprite = sprites[s];
+			// 				} else if (collisionBSprite == null && pair.bodyB.id == sprites[s].body.id) {
+			// 					collisionBSprite = sprites[s];
+			// 				} else if (collisionASprite != null && collisionBSprite != null) {
+			// 					break;
+			// 				}
+			// 			}
+			// 		}
+            	
+   //          	if (collisionASprite != null && collisionBSprite != null) {
+   //          		collisionListeners[c]({
+   //          			colliderA: collisionASprite,
+   //          			colliderB: collisionBSprite
+   //          		});
+   //          	}
+
+   //     		}
+				
+			// }
 
     });
 		
@@ -240,7 +270,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var links = [];
 	var children = [];
 	var userData = [];
-	var collision = false;
+	// var collision = false;
 	var animations = [];
 	var currentAnimation;
 	var animationSpeed;
@@ -250,6 +280,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var animationIncrease = true;
 	var controller;
 	var overrideRender;
+	var collisionCallback;
 	
 	this.setRenderer = function(renderrr) {
 		this.overrideRender = renderrr;
@@ -257,6 +288,17 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	
 	this.setController = function(controllerFunction) {
 		this.controller = controllerFunction;
+	}
+	
+	this.addCollisionCallback = function(collisionfunction) {
+		this.collisionCallback = collisionfunction;
+	}
+	
+	this.fireCollisionCallback = function(currentSprite, colliderSprite) {
+		if (this.collisionCallback) {
+			this.collisionCallback(currentSprite, colliderSprite);
+		}
+		
 	}
 	
 	this.addAnimation = function(name, animationImages) {
@@ -304,13 +346,13 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		}
 	}
 	
-	this.setCollision = function(col) {
-		collision = col;
-	}
+	// this.setCollision = function(col) {
+	// 	collision = col;
+	// }
 	
-	this.hasCollision = function() {
-		return collision;
-	}
+	// this.hasCollision = function() {
+	// 	return collision;
+	// }
 	
 	//Attach a child sprite or object to this one
 	this.attachChild = function(child) {

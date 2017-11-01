@@ -65,23 +65,23 @@ function setup() {
   gameEngine = new GameEngine();
   gameEngine.load();
   
-  //This is the collision listener
-  gameEngine.addCollisionListener(function(collisionEvent) {
-  	// console.log("collisionEvent: " + collisionEvent.colliderB);
+  ////This is the collision listener
+  //gameEngine.addCollisionListener(function(collisionEvent) {
+  //	// console.log("collisionEvent: " + collisionEvent.colliderB);
 
-  	if (collisionEvent.colliderA.getUserData("player") != null ||
-  		collisionEvent.colliderB.getUserData("player") != null) {
-  		onGround = true;
-  	}
+  //	if (collisionEvent.colliderA.getUserData("player") != null ||
+  //		collisionEvent.colliderB.getUserData("player") != null) {
+  //		onGround = true;
+  //	}
   	
-  	if (collisionEvent.colliderA.getUserData("bomb") != null) {
-  		collisionEvent.colliderA.destroy();
-  	}
+  //	if (collisionEvent.colliderA.getUserData("bomb") != null) {
+  //		collisionEvent.colliderA.destroy();
+  //	}
   	
-  	if (collisionEvent.colliderB.getUserData("bomb") != null) {
-  		collisionEvent.colliderB.destroy();
-  	}
-  });
+  //	if (collisionEvent.colliderB.getUserData("bomb") != null) {
+  //		collisionEvent.colliderB.destroy();
+  //	}
+  //});
   
   //gameEngine.setGravity(0, 1.5);
   groundHeight = height-30;
@@ -122,15 +122,23 @@ function setup() {
   gameEngine.addSprite(bladeSprite);
   
   //gameEngine.addSprite(new BoxSprite(crateImage, 200, 400, 0, 70, 70, {isStatic: false, restitution: 0.1, friction: 1}));
-  player = new Sprite(playerImage, width/2-300, 340, 50, 50, gameEngine.BOX, {isStatic: false, restitution: 0.2, friction: 0.01});
+  player = new Sprite(playerImage, width/2-300, 340, 50, 50, gameEngine.BOX, {isStatic: false, restitution: 0.2, friction: 0.1});
   player.setUserData("player", true);
-  player.setRenderer(function(obj) {
-  	console.log("render");
-  	fill(23);
-  	rect(0, 0, 30, 30);
-  });
+  //player.setRenderer(function(obj) {
+  //	console.log("render");
+  //	fill(23);
+  //	rect(0, 0, 30, 30);
+  //});
+
   gameEngine.addSprite(player);
   player.setController(callBackPlayer);
+  player.addCollisionCallback(function(current, collider) {
+  	console.log("collision: " + current.getUserData("player"));
+  	// collider.destroy();
+  	// current.clearForces();
+  	current.applyForce(0, -200);
+  	
+  });
   
   playerTail = new ParticleSystem(createVector(100, 100), smokeImage);
   playerTail.setKillSpeed(5);
@@ -260,7 +268,7 @@ function draw() {
 	if (frameCount % bombInterval == 0) {
 		addBomb();
 		bombInterval = floor(random(200, 500));
-		player.setSleeping(true);
+		// player.setSleeping(true);
 	}
 	
 	//Rotate the fan sprites
