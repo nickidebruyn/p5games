@@ -501,6 +501,18 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		
 	}
 	
+	//Sets the sleeping property
+	this.setSleeping = function(sleepin) {
+		if (this.body) {
+			// gameEngine.PhysicsBody.setStatic(this.body, sleepin);
+			Matter.Sleeping.set(this.body, sleepin)
+
+		} else {
+			console.log("No body found for sprite");
+		}
+		
+	}
+	
 	//Check if 2 points are in the object
 	this.collisionAtPoint = function(pointX, pointY) {
 		// console.log(this.position());

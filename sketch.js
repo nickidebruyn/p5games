@@ -124,6 +124,7 @@ function setup() {
   //gameEngine.addSprite(new BoxSprite(crateImage, 200, 400, 0, 70, 70, {isStatic: false, restitution: 0.1, friction: 1}));
   player = new Sprite(playerImage, width/2-300, 340, 50, 50, gameEngine.BOX, {isStatic: false, restitution: 0.2, friction: 0.01});
   player.setUserData("player", true);
+  
   gameEngine.addSprite(player);
   player.setController(callBackPlayer);
   
@@ -170,7 +171,7 @@ function setup() {
 }
 
 function callBackPlayer(spriteObj) {
-	console.log("callback: " + spriteObj.getPosition());
+	// console.log("callback: " + spriteObj.getPosition());
 }
 
 function addBomb() {
@@ -249,6 +250,8 @@ function draw() {
 	//Update the gameEngine
 	gameEngine.update();
 	
+	player.setSleeping(true);
+	
 	//Check when to add bombs
 	if (frameCount % bombInterval == 0) {
 		addBomb();
@@ -295,7 +298,7 @@ function draw() {
 	}
 	
 	spider.rotate(1);
-	console.log("Spider angle: " + spider.getRotation());
+	// console.log("Spider angle: " + spider.getRotation());
 
 }
 
