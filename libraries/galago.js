@@ -12,7 +12,8 @@ function GameEngine() {
 	 	 Bodies = Matter.Bodies,
 	 	 Body = Matter.Body,
 	 	 Constraint = Matter.Constraint,
-	 	 Events = Matter.Events;
+	 	 Events = Matter.Events,
+	 	 Sleeping = Matter.Sleeping;
 	var runningEngine;
 	 	 
 	//List of sprites we render using p5.js
@@ -34,6 +35,7 @@ function GameEngine() {
 	this.PhysicsBody = Body;
 	this.PhysicsEngine = Engine;
 	this.PhysicsConstraint = Constraint;
+	this.PhysicsSleeping = Sleeping;
 	
 	this.debugEnabled = false;
 	
@@ -247,6 +249,11 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var animationReverse = false;
 	var animationIncrease = true;
 	var controller;
+	var overrideRender;
+	
+	this.setRenderer = function(renderrr) {
+		this.overrideRender = renderrr;
+	}
 	
 	this.setController = function(controllerFunction) {
 		this.controller = controllerFunction;
@@ -504,8 +511,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	//Sets the sleeping property
 	this.setSleeping = function(sleepin) {
 		if (this.body) {
-			// gameEngine.PhysicsBody.setStatic(this.body, sleepin);
-			Matter.Sleeping.set(this.body, sleepin)
+			gameEngine.PhysicsSleeping.set(this.body, sleepin)
 
 		} else {
 			console.log("No body found for sprite");
@@ -654,8 +660,12 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 				
 				image(currentAnimation.images[animationIndex], 0, 0, w, h);
 				
+			} else if (this.overrideRender) {
+				this.overrideRender(this);
+				
 			} else if (img) {
-				image(img, 0, 0, w, h);		
+				image(img, 0, 0, w, h);
+				
 			}
 
 			
