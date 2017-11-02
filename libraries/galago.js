@@ -291,7 +291,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		this.controller = controllerFunction;
 	}
 	
-	this.addCollisionCallback = function(collisionfunction) {
+	this.setCollisionCallback = function(collisionfunction) {
 		this.collisionCallback = collisionfunction;
 	}
 	
