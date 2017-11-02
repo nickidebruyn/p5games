@@ -375,7 +375,8 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	
 	//Add some user data to this object which will identify it
 	this.setUserData = function(code, val) {
-		var existingData = getUserData(code);
+		var existingData = this.getUserData(code);
+		
 		if (existingData == null) {
 			userData.push({
 				code: code,

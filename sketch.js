@@ -133,7 +133,7 @@ function setup() {
   gameEngine.addSprite(player);
   player.setController(callBackPlayer);
   player.addCollisionCallback(function(current, collider) {
-  	// console.log("collision: " + current.getUserData("player"));
+  	console.log("collision: " + current.getUserData("player"));
   	// collider.destroy();
   	// current.clearForces();
   	// current.applyForce(0, -200);
