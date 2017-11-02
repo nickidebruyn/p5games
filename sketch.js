@@ -136,10 +136,11 @@ function setup() {
   	// console.log("collision: " + current.getUserData("player"));
   	// collider.destroy();
   	// current.clearForces();
-  	current.applyForce(0, -200);
+  	// current.applyForce(0, -200);
+  	// player.setScale(1, 1);
   	
   });
-  
+
   playerTail = new ParticleSystem(createVector(100, 100), smokeImage);
   playerTail.setKillSpeed(5);
   playerTail.setStartSize(50);
@@ -179,6 +180,7 @@ function setup() {
   waterfallParticleSystem.setEmitRate(1);
   gameEngine.addParticleSystem(waterfallParticleSystem);
 
+  gameEngine.debugEnabled = true;
   gameEngine.start();
 }
 
@@ -236,6 +238,10 @@ function mouseDragged() {
 
 function mousePressed() {
 	
+	if (mouseButton == CENTER) {
+		player.addScale(1, 1);
+	}
+	
 	if (mouseButton == RIGHT) {
 		if (gameEngine.collisionsAtMouse().length > 0) {
 			var picked = gameEngine.collisionsAtMouse()[gameEngine.collisionsAtMouse().length-1];
@@ -262,7 +268,7 @@ function draw() {
 	//Update the gameEngine
 	gameEngine.update();
 	
-	console.log("width: " + player.getWidth());
+	// console.log("width: " + player.getWidth());
 	
 	//Check when to add bombs
 	if (frameCount % bombInterval == 0) {

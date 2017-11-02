@@ -258,12 +258,13 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var physicsShape = physicsShape;
 	var img = initImage;
 	var position = createVector(initX, initY);
+	var scaleXY = createVector(1, 1);
 	var angle = 0;
 	var w = initWidth;
 	var h = initHeight;
 	var options = initOptions;
 	if (!options) {
-		options = {isStatic: true, restitution: 0.5, friction: 0.5};
+		options = {isStatic: true, restitution: 0.5, friction: 0.5, frictionAir: 0};
 	}
 	var dead = false;
 	var gameEngine;
@@ -365,7 +366,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	}
 	
 	//Make all children follow this sprite
-	var updateChildren = function(posX, posY, ang) {
+	var updateChildren = function(posX, posY, ang, scaleVal) {
 		for (var i=0; i<children.length; i++) {
 			children[i].setPosition(posX, posY);
 			children[i].setAngle(ang);
@@ -422,7 +423,25 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		} else {
 			position = createVector(posX, posY);
 		}
-
+	}
+	
+	//Set the scale of the sprite
+	this.addScale = function(xScale, yScale) {
+		scaleXY = scaleXY.add(xScale, yScale);
+		
+		if (this.body) {
+			gameEngine.PhysicsBody.scale(this.body, scaleXY.x, scaleXY.y);
+		}
+		
+		for (var i=0; i<children.length; i++) {
+			children[i].addScale(xScale, yScale);
+		}
+		
+	}
+	
+	//Returns the current scale
+	this.getScale = function() {
+		return scaleXY;
 	}
 	
 	//Returns the world up direction the sprite is facing
@@ -676,14 +695,16 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			if (this.body) {
 				//Move and rotate to physics world
 				translate(this.body.position.x, this.body.position.y);
-				rotate(this.body.angle);				
-				updateChildren(this.body.position.x, this.body.position.y, degrees(this.body.angle));
+				rotate(this.body.angle);
+				scale(scaleXY.x, scaleXY.y);
+				updateChildren(this.body.position.x, this.body.position.y, degrees(this.body.angle), scaleXY);
 				
 			} else {
 				//Move and rotate the sprite
 				translate(position.x, position.y);
 				rotate(radians(angle));
-				updateChildren(position.x, position.y, angle);
+				scale(scaleXY.x, scaleXY.y);
+				updateChildren(position.x, position.y, angle, scaleXY);
 			}
 
 			
@@ -827,6 +848,7 @@ var ParticleSystem = function (position, particleImg) {
   	var dead = false;
 	var userData = [];
 	var controller;
+	var scaleXY = createVector(1, 1);
 	
 	this.setController = function(controllerFunction) {
 		this.controller = controllerFunction;
@@ -863,6 +885,17 @@ var ParticleSystem = function (position, particleImg) {
 	this.setPosition = function(posX, posY) {
 		this.origin = createVector(posX, posY);
 		
+	}
+	
+	//Set the scale of the sprite
+	this.addScale = function(xScale, yScale) {
+		scaleXY = scaleXY.add(xScale, yScale);
+		
+	}
+	
+	//Returns the current scale
+	this.getScale = function() {
+		return scaleXY;
 	}
 	
 	this.setAngle = function(angleInDegrees) {
