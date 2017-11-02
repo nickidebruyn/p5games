@@ -425,6 +425,20 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 
 	}
 	
+	//Returns the world up direction the sprite is facing
+	this.getUp = function() {
+		var angle = this.getAngle() - 90;
+    	var dir = createVector(cos(radians(angle)), sin(radians(angle)));
+    	return dir;
+	}
+	
+	//Returns the world up direction the sprite is facing
+	this.getRight = function() {
+		var angle = this.getAngle();
+    	var dir = createVector(cos(radians(angle)), sin(radians(angle)));
+    	return dir;
+	}
+	
 	//Move the sprite
 	this.move = function(amountX, amountY) {
 		if (this.body) {
