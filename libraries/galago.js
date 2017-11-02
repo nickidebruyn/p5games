@@ -385,7 +385,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		} else {
 			for (var i=0; i<userData.length; i++) {
 				if (userData[i].code == code) {
-					val = val;
+					userData[i].value = val;
 					break;
 				}
 			}
