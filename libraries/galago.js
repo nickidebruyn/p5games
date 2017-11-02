@@ -770,10 +770,16 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			//Show the debug info of the physics body
 			if (gameEngine.debugEnabled && this.body) {
 				noFill();
-				if (options != undefined && options.isStatic) {
+				
+				if (options != undefined && options.isSensor) {
+					stroke(200, 0, 200);
+					
+				} else if (options != undefined && options.isStatic) {
 					stroke(0, 0, 200);
+					
 				} else {
 					stroke(0, 200, 0);
+					
 				}
 				if (physicsShape == gameEngine.BOX) {
 					rect(0, 0, w, h);	

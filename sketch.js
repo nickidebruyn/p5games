@@ -122,7 +122,7 @@ function setup() {
   gameEngine.addSprite(bladeSprite);
   
   //gameEngine.addSprite(new BoxSprite(crateImage, 200, 400, 0, 70, 70, {isStatic: false, restitution: 0.1, friction: 1}));
-  player = new Sprite(playerImage, width/2-300, 340, 50, 50, gameEngine.BOX, {isStatic: false, restitution: 0.2, friction: 0.1});
+  player = new Sprite(playerImage, width/2-300, 340, 50, 50, gameEngine.BOX, {isStatic: false, restitution: 0.2, friction: 0.1, isSensor: true});
   player.setUserData("player", true);
   //player.setRenderer(function(obj) {
   //	console.log("render");
