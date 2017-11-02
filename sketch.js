@@ -133,7 +133,7 @@ function setup() {
   gameEngine.addSprite(player);
   player.setController(callBackPlayer);
   player.addCollisionCallback(function(current, collider) {
-  	console.log("collision: " + current.getUserData("player"));
+  	// console.log("collision: " + current.getUserData("player"));
   	// collider.destroy();
   	// current.clearForces();
   	current.applyForce(0, -200);
@@ -262,7 +262,7 @@ function draw() {
 	//Update the gameEngine
 	gameEngine.update();
 	
-	
+	console.log("width: " + player.getWidth());
 	
 	//Check when to add bombs
 	if (frameCount % bombInterval == 0) {

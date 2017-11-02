@@ -439,6 +439,16 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
     	return dir;
 	}
 	
+	//This will return the width of the sprite
+	this.getWidth = function() {
+		return w;
+	}
+	
+	//This will return the height of the sprite
+	this.getHeight = function() {
+		return h;
+	}
+	
 	//Move the sprite
 	this.move = function(amountX, amountY) {
 		if (this.body) {
