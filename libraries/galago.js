@@ -46,6 +46,11 @@ function GameEngine() {
 		
 	}
 	
+	this.setTimeScale = function(tScale) {
+		runningEngine.timing.timeScale = tScale;
+		
+	}
+	
 	//Add a physics body
 	this.addBody = function(body) {
 		World.add(runningEngine.world, body);
