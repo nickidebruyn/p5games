@@ -596,7 +596,8 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	//Sets the static property
 	this.setStatic = function(stat) {
 		if (this.body) {
-			gameEngine.PhysicsBody.set(this.body, "isStatic", stat);
+			options.isStatic = stat;
+			gameEngine.PhysicsBody.set(this.body, options);
 
 		} else {
 			console.log("No body found for sprite when setting isStatic");
@@ -607,7 +608,10 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	//Sets the sensor property
 	this.setSensor = function(sen) {
 		if (this.body) {
-			gameEngine.PhysicsBody.set(this.body, "isSensor", sen);
+			options.isSensor = sen;
+			gameEngine.PhysicsBody.set(this.body, options);
+			
+			// gameEngine.PhysicsBody.set(this.body, "isSensor", sen);
 
 		} else {
 			console.log("No body found for sprite when setting isSensor");
