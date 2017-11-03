@@ -283,18 +283,24 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var overrideRender;
 	var collisionCallback;
 	
+	//Set a renderer for this sprite
+	//You can override the rendering function of the sprite
 	this.setRenderer = function(renderrr) {
 		this.overrideRender = renderrr;
 	}
 	
+	//Set a controller for this sprite which will be called each frame count for this sprite
+	//Use this function if you want to add behaviour to a sprite
 	this.setController = function(controllerFunction) {
 		this.controller = controllerFunction;
 	}
 	
+	//Set a collision callback function on this sprite which will be called if a collision happend
 	this.setCollisionCallback = function(collisionfunction) {
 		this.collisionCallback = collisionfunction;
 	}
 	
+	//Used locally
 	this.fireCollisionCallback = function(currentSprite, colliderSprite) {
 		if (this.collisionCallback) {
 			this.collisionCallback(currentSprite, colliderSprite);
@@ -302,6 +308,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		
 	}
 	
+	//Add an array of images which will make up an animation of the sprite
 	this.addAnimation = function(name, animationImages) {
 		var anim = {
 			"name" : name,
@@ -311,6 +318,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		
 	}
 	
+	//Play a specific animation which you have defined through setting an array of sprites
 	this.playAnimation = function(name, speed, loopAnim, reverseAnim) {
 		
 		if (name == undefined) {
@@ -346,14 +354,6 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			}
 		}
 	}
-	
-	// this.setCollision = function(col) {
-	// 	collision = col;
-	// }
-	
-	// this.hasCollision = function() {
-	// 	return collision;
-	// }
 	
 	//Attach a child sprite or object to this one
 	this.attachChild = function(child) {
@@ -529,7 +529,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 				y: forceY
 			});
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when applying force");
 		}
 
 	}
@@ -539,7 +539,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		if (this.body) {
 			gameEngine.PhysicsBody.setAngularVelocity(this.body, angularVelocity);
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when setting angular velocity");
 		}
 		
 	}
@@ -552,7 +552,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 				y: velY
 			});
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when setting velocity");
 		}
 
 	}
@@ -566,7 +566,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			});
 			gameEngine.PhysicsBody.setAngularVelocity(this.body, 0);
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when clearing forces");
 		}
 
 	}
@@ -577,7 +577,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			gameEngine.PhysicsBody.setDensity(this.body, density);
 			
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when setting density");
 		}
 		
 	}
@@ -588,7 +588,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			gameEngine.PhysicsBody.setMass(this.body, mass);
 
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when setting mass");
 		}
 		
 	}
@@ -596,10 +596,21 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	//Sets the static property
 	this.setStatic = function(stat) {
 		if (this.body) {
-			gameEngine.PhysicsBody.setStatic(this.body, stat);
+			gameEngine.PhysicsBody.set(this.body, "isStatic", stat);
 
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when setting isStatic");
+		}
+		
+	}
+	
+	//Sets the sensor property
+	this.setSensor = function(sen) {
+		if (this.body) {
+			gameEngine.PhysicsBody.set(this.body, "isSensor", sen);
+
+		} else {
+			console.log("No body found for sprite when setting isSensor");
 		}
 		
 	}
@@ -610,7 +621,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			gameEngine.PhysicsSleeping.set(this.body, sleepin)
 
 		} else {
-			console.log("No body found for sprite");
+			console.log("No body found for sprite when setting sleeping");
 		}
 		
 	}
@@ -629,6 +640,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		
 	}
 	
+	//Used locally to load the sprite
 	this.load = function(engine) {
 		gameEngine = engine;
 		
@@ -642,12 +654,14 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			//Local body of the physics box
 			this.body = gameEngine.PhysicsBodies.circle(position.x, position.y, w/2, options);
 			//Adding body to the world
-			gameEngine.addBody(this.body);			
+			gameEngine.addBody(this.body);
 		}
 
 		
 	}
 	
+	//This method can be called to make a joint or a link in physics with a stiffness to a target sprite
+	//Use for ropes or briges, etc
 	this.link = function(targetSprite, length, stiffness, offsetX, offsetY, targetOffsetX, targetOffsetY) {
 		if (this.body) {
 			var constraintOptions = {
@@ -679,6 +693,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 
 	}
 	
+	//Get the angle of the sprite in degrees
 	this.getRotation = function() {
 		
 			if (this.body) {
@@ -689,6 +704,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			}		
 	}
 	
+	//Get the angle of the sprite in degrees
 	this.getAngle = function() {
 		
 			if (this.body) {
@@ -699,6 +715,7 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 			}		
 	}
 
+	//Used locally and should not be called
 	this.update = function() {
 		push();
 		
