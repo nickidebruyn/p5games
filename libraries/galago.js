@@ -561,6 +561,16 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		}
 
 	}
+	
+	//Get the linear velocity
+	this.getVelocity = function() {
+		if (this.body) {
+			return this.body.velocity;
+		} else {
+			console.log("No body found for sprite when setting velocity");
+		}
+
+	}
 
 	//Clear all physics forces
 	this.clearForces = function() {

@@ -21,7 +21,7 @@ function setup() {
   gameEngine = new GameEngine();
   gameEngine.debugEnabled = true;
   gameEngine.load();
-  gameEngine.setTimeScale(0.1);
+  //gameEngine.setTimeScale(0.2);
   
   addBox(width/2, 100, 50, 50);
   
