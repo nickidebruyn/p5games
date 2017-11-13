@@ -44,6 +44,8 @@ function addBox(xPos, yPos, w, h) {
   
   sprite = new Sprite(boxImage, xPos, yPos, w, h, gameEngine.BOX, {isStatic: false, collisionFilter: {group: -1}});
   sprite.setUserData("tag", "box");
+  sprite.setPhysicsScale(1, 0.5);
+  sprite.setPhysicsOffset(0, -h*0.25);
   gameEngine.addSprite(sprite);
   sprite.setCollisionCallback(function(sprite, collider) {
   	// var tag = collider.getUserData("tag");

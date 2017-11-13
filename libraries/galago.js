@@ -287,6 +287,16 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 	var controller;
 	var overrideRender;
 	var collisionCallback;
+	var physicsScale = createVector(1, 1);
+	var physicsOffset = createVector(0, 0);
+	
+	this.setPhysicsScale = function(x, y) {
+		physicsScale = createVector(x, y);
+	}
+	
+	this.setPhysicsOffset = function(x, y) {
+		physicsOffset = createVector(x, y);
+	}
 	
 	//Set a renderer for this sprite
 	//You can override the rendering function of the sprite
@@ -665,13 +675,13 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 		
 		if (physicsShape == gameEngine.BOX) {
 			//Local body of the physics box
-			this.body = gameEngine.PhysicsBodies.rectangle(position.x, position.y, w, h, options);
+			this.body = gameEngine.PhysicsBodies.rectangle(position.x, position.y, w*physicsScale.x, h*physicsScale.y, options);
 			//Adding body to the world
 			gameEngine.addBody(this.body);
 			
 		} else if (physicsShape == gameEngine.CIRCLE) {
 			//Local body of the physics box
-			this.body = gameEngine.PhysicsBodies.circle(position.x, position.y, w/2, options);
+			this.body = gameEngine.PhysicsBodies.circle(position.x, position.y, (w*physicsScale.x)/2, options);
 			//Adding body to the world
 			gameEngine.addBody(this.body);
 		}
@@ -792,13 +802,13 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 
 				}
 				
-				image(currentAnimation.images[animationIndex], 0, 0, w, h);
+				image(currentAnimation.images[animationIndex], physicsOffset.x, physicsOffset.y, w, h);
 				
 			} else if (this.overrideRender) {
 				this.overrideRender(this);
 				
 			} else if (img) {
-				image(img, 0, 0, w, h);
+				image(img, physicsOffset.x, physicsOffset.y, w, h);
 				
 			}
 
@@ -818,9 +828,9 @@ function Sprite(initImage, initX, initY, initWidth, initHeight, physicsShape, in
 					
 				}
 				if (physicsShape == gameEngine.BOX) {
-					rect(0, 0, w, h);	
+					rect(0, 0, w*physicsScale.x, h*physicsScale.y);	
 				} else if (physicsShape == gameEngine.CIRCLE) {
-					ellipse(0, 0, w);
+					ellipse(0, 0, w*physicsScale.x);
 				}
 				
 			}
