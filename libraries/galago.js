@@ -205,6 +205,8 @@ function GameEngine() {
 		//Update the engine manually
 		Engine.update(runningEngine);
 		
+		TweenJS.update(frameRate());
+		
 		//Camera translation
 		translate((width*0.5) - cameraX, (height*0.5) - cameraY);
 		
@@ -1440,5 +1442,384 @@ s.clear();for(var p=t.parts.length>1?1:0;p<t.parts.length;p++){o=t.parts[p],i.wi
 !function(e,t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports?module.exports=t():e.SuperGif=t()}(this,function(){var e=function(e){return e.reduce(function(e,t){return 2*e+t},0)},t=function(e){for(var t=[],n=7;n>=0;n--)t.push(!!(e&1<<n));return t},n=function(e){this.data=e,this.len=this.data.length,this.pos=0,this.readByte=function(){if(this.pos>=this.data.length)throw new Error("Attempted to read past end of stream.");return e instanceof Uint8Array?e[this.pos++]:255&e.charCodeAt(this.pos++)},this.readBytes=function(e){for(var t=[],n=0;e>n;n++)t.push(this.readByte());return t},this.read=function(e){for(var t="",n=0;e>n;n++)t+=String.fromCharCode(this.readByte());return t},this.readUnsigned=function(){var e=this.readBytes(2);return(e[1]<<8)+e[0]}},r=function(e,t){for(var n,r,a=0,i=function(e){for(var n=0,r=0;e>r;r++)t.charCodeAt(a>>3)&1<<(7&a)&&(n|=1<<r),a++;return n},o=[],u=1<<e,l=u+1,f=e+1,c=[],s=function(){c=[],f=e+1;for(var t=0;u>t;t++)c[t]=[t];c[u]=[],c[l]=null};;)if(r=n,n=i(f),n!==u){if(n===l)break;if(n<c.length)r!==u&&c.push(c[r].concat(c[n][0]));else{if(n!==c.length)throw new Error("Invalid LZW code.");c.push(c[r].concat(c[r][0]))}o.push.apply(o,c[n]),c.length===1<<f&&12>f&&f++}else s();return o},a=function(n,a){a||(a={});var i=function(e){for(var t=[],r=0;e>r;r++)t.push(n.readBytes(3));return t},o=function(){var e,t;t="";do e=n.readByte(),t+=n.read(e);while(0!==e);return t},u=function(){var r={};if(r.sig=n.read(3),r.ver=n.read(3),"GIF"!==r.sig)throw new Error("Not a GIF file.");r.width=n.readUnsigned(),r.height=n.readUnsigned();var o=t(n.readByte());r.gctFlag=o.shift(),r.colorRes=e(o.splice(0,3)),r.sorted=o.shift(),r.gctSize=e(o.splice(0,3)),r.bgColor=n.readByte(),r.pixelAspectRatio=n.readByte(),r.gctFlag&&(r.gct=i(1<<r.gctSize+1)),a.hdr&&a.hdr(r)},l=function(r){var i=function(r){var i=(n.readByte(),t(n.readByte()));r.reserved=i.splice(0,3),r.disposalMethod=e(i.splice(0,3)),r.userInput=i.shift(),r.transparencyGiven=i.shift(),r.delayTime=n.readUnsigned(),r.transparencyIndex=n.readByte(),r.terminator=n.readByte(),a.gce&&a.gce(r)},u=function(e){e.comment=o(),a.com&&a.com(e)},l=function(e){n.readByte();e.ptHeader=n.readBytes(12),e.ptData=o(),a.pte&&a.pte(e)},f=function(e){var t=function(e){n.readByte();e.unknown=n.readByte(),e.iterations=n.readUnsigned(),e.terminator=n.readByte(),a.app&&a.app.NETSCAPE&&a.app.NETSCAPE(e)},r=function(e){e.appData=o(),a.app&&a.app[e.identifier]&&a.app[e.identifier](e)};n.readByte();switch(e.identifier=n.read(8),e.authCode=n.read(3),e.identifier){case"NETSCAPE":t(e);break;default:r(e)}},c=function(e){e.data=o(),a.unknown&&a.unknown(e)};switch(r.label=n.readByte(),r.label){case 249:r.extType="gce",i(r);break;case 254:r.extType="com",u(r);break;case 1:r.extType="pte",l(r);break;case 255:r.extType="app",f(r);break;default:r.extType="unknown",c(r)}},f=function(u){var l=function(e,t){for(var n=new Array(e.length),r=e.length/t,a=function(r,a){var i=e.slice(a*t,(a+1)*t);n.splice.apply(n,[r*t,t].concat(i))},i=[0,4,2,1],o=[8,8,4,2],u=0,l=0;4>l;l++)for(var f=i[l];r>f;f+=o[l])a(f,u),u++;return n};u.leftPos=n.readUnsigned(),u.topPos=n.readUnsigned(),u.width=n.readUnsigned(),u.height=n.readUnsigned();var f=t(n.readByte());u.lctFlag=f.shift(),u.interlaced=f.shift(),u.sorted=f.shift(),u.reserved=f.splice(0,2),u.lctSize=e(f.splice(0,3)),u.lctFlag&&(u.lct=i(1<<u.lctSize+1)),u.lzwMinCodeSize=n.readByte();var c=o();u.pixels=r(u.lzwMinCodeSize,c),u.interlaced&&(u.pixels=l(u.pixels,u.width)),a.img&&a.img(u)},c=function(){var e={};switch(e.sentinel=n.readByte(),String.fromCharCode(e.sentinel)){case"!":e.type="ext",l(e);break;case",":e.type="img",f(e);break;case";":e.type="eof",a.eof&&a.eof(e);break;default:throw new Error("Unknown block: 0x"+e.sentinel.toString(16))}"eof"!==e.type&&setTimeout(c,0)},s=function(){u(),setTimeout(c,0)};s()},i=function(e){var t={vp_l:0,vp_t:0,vp_w:null,vp_h:null,c_w:null,c_h:null,auto_play:!0};for(var r in e)t[r]=e[r];t.vp_w&&t.vp_h&&(t.is_vp=!0);var i,o,u=null,l=!1,f=null,c=null,s=null,d=null,p=null,h=null,g=null,y=!0,v=!0,m=!1,_=[],w=[],x=document.createElement("img");x.src=t.gif;var B,b,T=t.hasOwnProperty("on_end")?t.on_end:null,P=t.hasOwnProperty("loop_delay")?t.loop_delay:0,k=t.hasOwnProperty("loop_mode")?t.loop_mode:"auto",C=function(){f=null,c=null,p=s,s=null,h=null},S=function(){try{a(i,N)}catch(e){U("parse")}},E=function(e,t){b.resize(e,t),b.width=e,b.height=t},I=function(e,t){return w[e]?("undefined"!=typeof t.x&&(w[e].x=t.x),void("undefined"!=typeof t.y&&(w[e].y=t.y))):void(w[e]=t)},U=function(e){u=e,_=[]},A=function(e){o=e,E(o.width,o.height)},G=function(e){z(),C(),f=e.transparencyGiven?e.transparencyIndex:null,c=e.delayTime,s=e.disposalMethod},z=function(){h&&(_.push({data:h.getImageData(0,0,o.width,o.height),delay:c}),w.push({x:0,y:0}))},F=function(e){h||(h=B.getContext("2d"));var t=_.length,n=e.lctFlag?e.lct:o.gct;t>0&&(3===p?null!==d?h.putImageData(_[d].data,0,0):h.clearRect(g.leftPos,g.topPos,g.width,g.height):d=t-1,2===p&&h.clearRect(g.leftPos,g.topPos,g.width,g.height));var r=h.getImageData(e.leftPos,e.topPos,e.width,e.height),a=r.data;e.pixels.forEach(function(e,t){e!==f&&(a[4*t+0]=n[e][0],a[4*t+1]=n[e][1],a[4*t+2]=n[e][2],a[4*t+3]=255)}),r.data.set(a),h.putImageData(r,e.leftPos,e.topPos),m||(m=!0),g=e},D=function(){var e=-1,n=0,r=function(){var t=v?1:-1;return(e+t+_.length)%_.length},a=function(t){e+=t,l()},i=function(){null!==T&&T(x),n++},o=function(){var t=!1,o=function(){if(t=y){a(1);var u=10*_[e].delay;u||(u=100);var l=r();0===l&&(u+=P,setTimeout(i,u-1)),(k!==!1||0!==l||0>n)&&setTimeout(o,u)}};return function(){t||setTimeout(o,0)}}(),l=function(){var t;e=parseInt(e,10),e>_.length-1&&(e=0),0>e&&(e=0),t=w[e],B.getContext("2d").putImageData(_[e].data,t.x,t.y)},f=function(){y=!0,o()},c=function(){y=!1};return{init:function(){u||(t.auto_play?o():(e=0,l()))},step:o,play:f,pause:c,playing:y,move_relative:a,current_frame:function(){return e},length:function(){return _.length},move_to:function(t){e=t,l()},get_frames:function(){return _},buffer:function(){return b},get_playing:function(){return y}}}(),M=function(){},R=function(e,t){return function(t){e(t)}},N={hdr:R(A),gce:R(G),com:R(M),app:{NETSCAPE:R(M)},img:R(F,!0),eof:function(e){z(),D.init(),l=!1,console.log("ok"),j&&j(x)}},O=function(){b=t.p5inst.createImage(0,0),B=b.canvas,L=!0},H=function(){var e;return e=t.max_width&&o&&o.width>t.max_width?t.max_width/o.width:1},L=!1,j=!1,q=function(e){return l?!1:(j=e?e:!1,l=!0,_=[],C(),d=null,p=null,h=null,g=null,!0)};return{play:D.play,pause:D.pause,move_relative:D.move_relative,move_to:D.move_to,get_playing:D.get_playing,get_canvas:function(){return canvas},get_canvas_scale:function(){return H()},get_loading:function(){return l},get_auto_play:function(){return t.auto_play},get_length:function(){return D.length()},get_current_frame:function(){return D.current_frame()},get_frames:function(){return D.get_frames()},buffer:function(){return D.buffer()},load_url:function(e,t){if(q(t)){var r=new XMLHttpRequest;r.overrideMimeType("text/plain; charset=x-user-defined"),r.onloadstart=function(){L||O()},r.onload=function(e){i=new n(r.responseText),setTimeout(S,0)},r.onerror=function(){U("xhr")},r.open("GET",e,!0),r.send()}},load:function(e){this.load_url(x.src,e)},load_raw:function(e,t){q(t)&&(L||O(),i=new n(e),setTimeout(S,0))},set_frame_offset:I}};return i}),function(){p5.prototype.loadGif=function(e,t){var n=new SuperGif({gif:e,p5inst:this});n.load(t);var r=n.buffer();return r.play=n.play,r.pause=n.pause,r.playing=n.get_playing,r.frames=n.get_frames,r.totalFrames=n.get_length,r.loaded=function(){return!n.get_loading()},r.frame=function(e){return"number"!=typeof e?n.get_current_frame():void n.move_to(e)},r},p5.prototype.loadRawGif=function(e,t){var n=new SuperGif({gif:"",p5inst:this});n.load_raw(e,t);var r=n.buffer();return r.play=n.play,r.pause=n.pause,r.playing=n.get_playing,r.frames=n.get_frames,r.totalFrames=n.get_length,r.loaded=function(){return!n.get_loading()},r.frame=function(e){return"number"!=typeof e?n.get_current_frame():void n.move_to(e)},r}}();
 
 
+//******************* TWEEN ENGINE *************************************
+//
+//
+//**********************************************************************
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Easing = {
+    Linear: function (k) {
+        return k;
+    },
+    Quadratic: {
+        In: function (k) {
+            return k * k;
+        },
+        Out: function (k) {
+            return k * (2 - k);
+        },
+        InOut: function (k) {
+            if ((k *= 2) < 1) {
+                return 0.5 * k * k;
+            }
+
+            return -0.5 * (--k * (k - 2) - 1);
+        }
+    },
+    Cubic: {
+        In: function (k) {
+            return k * k * k;
+        },
+        Out: function (k) {
+            return --k * k * k + 1;
+        },
+        InOut: function (k) {
+            if ((k *= 2) < 1) {
+                return 0.5 * k * k * k;
+            }
+
+            return 0.5 * ((k -= 2) * k * k + 2);
+        }
+    },
+    Quartic: {
+        In: function (k) {
+            return k * k * k * k;
+        },
+        Out: function (k) {
+            return 1 - (--k * k * k * k);
+        },
+        InOut: function (k) {
+            if ((k *= 2) < 1) {
+                return 0.5 * k * k * k * k;
+            }
+
+            return -0.5 * ((k -= 2) * k * k * k - 2);
+        }
+    },
+    Quintic: {
+        In: function (k) {
+            return k * k * k * k * k;
+        },
+        Out: function (k) {
+            return --k * k * k * k * k + 1;
+        },
+        InOut: function (k) {
+            if ((k *= 2) < 1) {
+                return 0.5 * k * k * k * k * k;
+            }
+
+            return 0.5 * ((k -= 2) * k * k * k * k + 2);
+        }
+    },
+    Sinusoidal: {
+        In: function (k) {
+            return 1 - Math.cos(k * Math.PI / 2);
+        },
+        Out: function (k) {
+            return Math.sin(k * Math.PI / 2);
+        },
+        InOut: function (k) {
+            return 0.5 * (1 - Math.cos(Math.PI * k));
+        }
+    },
+    Exponential: {
+        In: function (k) {
+            return k === 0 ? 0 : Math.pow(1024, k - 1);
+        },
+        Out: function (k) {
+            return k === 1 ? 1 : 1 - Math.pow(2, -10 * k);
+        },
+        InOut: function (k) {
+            if (k === 0) {
+                return 0;
+            }
+
+            if (k === 1) {
+                return 1;
+            }
+
+            if ((k *= 2) < 1) {
+                return 0.5 * Math.pow(1024, k - 1);
+            }
+
+            return 0.5 * (-Math.pow(2, -10 * (k - 1)) + 2);
+        }
+    },
+    Circular: {
+        In: function (k) {
+            return 1 - Math.sqrt(1 - k * k);
+        },
+        Out: function (k) {
+            return Math.sqrt(1 - (--k * k));
+        },
+        InOut: function (k) {
+            if ((k *= 2) < 1) {
+                return -0.5 * (Math.sqrt(1 - k * k) - 1);
+            }
+
+            return 0.5 * (Math.sqrt(1 - (k -= 2) * k) + 1);
+        }
+    },
+    Elastic: {
+        In: function (k) {
+            if (k === 0) {
+                return 0;
+            }
+
+            if (k === 1) {
+                return 1;
+            }
+
+            return -Math.pow(2, 10 * (k - 1)) * Math.sin((k - 1.1) * 5 * Math.PI);
+        },
+        Out: function (k) {
+            if (k === 0) {
+                return 0;
+            }
+
+            if (k === 1) {
+                return 1;
+            }
+
+            return Math.pow(2, -10 * k) * Math.sin((k - 0.1) * 5 * Math.PI) + 1;
+        },
+        InOut: function (k) {
+            if (k === 0) {
+                return 0;
+            }
+
+            if (k === 1) {
+                return 1;
+            }
+
+            k *= 2;
+
+            if (k < 1) {
+                return -0.5 * Math.pow(2, 10 * (k - 1)) * Math.sin((k - 1.1) * 5 * Math.PI);
+            }
+
+            return 0.5 * Math.pow(2, -10 * (k - 1)) * Math.sin((k - 1.1) * 5 * Math.PI) + 1;
+        }
+    },
+    Back: {
+        In: function (k) {
+            var s = 1.70158;
+
+            return k * k * ((s + 1) * k - s);
+        },
+        Out: function (k) {
+            var s = 1.70158;
+
+            return --k * k * ((s + 1) * k + s) + 1;
+        },
+        InOut: function (k) {
+            var s = 1.70158 * 1.525;
+
+            if ((k *= 2) < 1) {
+                return 0.5 * (k * k * ((s + 1) * k - s));
+            }
+
+            return 0.5 * ((k -= 2) * k * ((s + 1) * k + s) + 2);
+        }
+    },
+    Bounce: {
+        In: function (k) {
+            return 1 - TweenJS.Easing.Bounce.Out(1 - k);
+        },
+        Out: function (k) {
+            if (k < (1 / 2.75)) {
+                return 7.5625 * k * k;
+            } else if (k < (2 / 2.75)) {
+                return 7.5625 * (k -= (1.5 / 2.75)) * k + 0.75;
+            } else if (k < (2.5 / 2.75)) {
+                return 7.5625 * (k -= (2.25 / 2.75)) * k + 0.9375;
+            } else {
+                return 7.5625 * (k -= (2.625 / 2.75)) * k + 0.984375;
+            }
+        },
+        InOut: function (k) {
+            if (k < 0.5) {
+                return TweenJS.Easing.Bounce.In(k * 2) * 0.5;
+            }
+
+            return TweenJS.Easing.Bounce.Out(k * 2 - 1) * 0.5 + 0.5;
+        }
+    }
+};
+
+module.exports = Easing;
+},{}],2:[function(require,module,exports){
+var Tween = function(object) {
+    this._object = object;
+    this._paused = true;
+    this._destroyOnComplete = false;
+    this._delay = 0;
+    this._yoyo = false;
+    this._reversed = false;
+    this._chainedTween = null;
+};
+
+Tween.prototype.constructor = Tween;
+module.exports = Tween;
+
+Tween.prototype.to = function(properties, duration) {
+    this._properties = properties;
+    this._duration = duration;
+    return this;
+};
+
+Tween.prototype.start = function() {
+    this._startValues = {};
+    Object.keys(this._properties).forEach(function(property) {
+        this._startValues[property] = this._object[property];
+    }, this);
+
+    this._elapsed = 0.0;
+    this._paused = false;
+
+    // Callback
+    if (this._onStartCallback) {
+        this._onStartCallback.call(this._object);
+    }
+
+    return this;
+};
+
+Tween.prototype.easing = function(easingFunction) {
+    this._easingFunction = easingFunction;
+    return this;
+};
+
+Tween.prototype.delay = function(delay) {
+    this._delay = delay;
+    return this;
+};
+
+Tween.prototype.yoyo = function(bool) {
+    this._yoyo = bool;
+    return this;
+};
+
+Tween.prototype.chain = function(chainedTween) {
+    this._chainedTween = chainedTween;
+    return this;
+};
+
+Tween.prototype.destroyOnComplete = function(bool) {
+    this._destroyOnComplete = bool;
+    return this;
+};
+
+Tween.prototype.onStart = function(callback) {
+    this._onStartCallback = callback;
+    return this;
+};
+
+Tween.prototype.onComplete = function(callback) {
+    this._onCompleteCallback = callback;
+    return this;
+};
+
+Tween.prototype.onUpdate = function(callback) {
+    this._onUpdateCallback = callback;
+    return this;
+};
+
+Tween.prototype.update = function(delta) {
+    if (this._paused || this.isComplete()) {
+        return;
+    }
+
+    this._elapsed += delta;
+    this._elapsed = Math.min(this._duration + this._delay, this._elapsed);
+
+    if (this._elapsed < this._delay) {
+        return;
+    }
+
+    //Interpolate
+    Object.keys(this._properties).forEach(function(property) {
+        var diff;
+        if (this._reversed) {
+            diff = this._startValues[property] - this._properties[property];
+            this._object[property] = this._properties[property] + (diff * this._easingFunction((this._elapsed - this._delay) / this._duration));
+        } else {
+            diff = this._properties[property] - this._startValues[property];
+            this._object[property] = this._startValues[property] + (diff * this._easingFunction((this._elapsed - this._delay) / this._duration));
+        }
+    }, this);
+
+    if (this.isComplete()) {
+        if (this._yoyo) {
+            this._reversed = !this._reversed;
+            this._elapsed = 0;
+        }
+
+        // Callback
+        if (this._onCompleteCallback) {
+            this._onCompleteCallback.call(this._object);
+        }
+
+        if (this._chainedTween) {
+            this._chainedTween.start();
+        }
+    }
+
+    // Callback
+    if (this._onUpdateCallback) {
+        this._onUpdateCallback.call(this._object);
+    }
+};
+
+Tween.prototype.isComplete = function() {
+    return (this._elapsed === this._duration);
+};
+
+Tween.prototype.isPaused = function() {
+    return this._paused;
+};
+
+Tween.prototype.isRunning = function() {
+    return !this._paused && this._elapsed < this._duration;
+};
+
+Tween.prototype.isDestroyOnComplete = function() {
+    return this._destroyOnComplete;
+};
+},{}],3:[function(require,module,exports){
+(function (global){
+var Tween  = require('Tween.js'),
+    Easing = require('Easing.js');
+
+var TweenJS = {
+    Tween: Tween,
+    Easing: Easing,
+    _tweens: [],
+    add: function(tween) {
+        TweenJS._tweens.push(tween);
+        return tween;
+    },
+    remove: function(tween) {
+        var index = TweenJS._tweens.indexOf(tween);
+        if (index > -1) {
+            TweenJS._tweens.splice(index, 1);
+        }
+    },
+    update: function(delta) {
+        TweenJS._tweens.forEach(function(tween) {
+            tween.update(delta);
+            if (tween.isComplete() && tween.isDestroyOnComplete()) {
+                var index = TweenJS._tweens.indexOf(tween);
+                TweenJS._tweens.splice(index, 1);
+            }
+        }, this)
+    }
+};
+
+//Export globally
+global.TweenJS = TweenJS;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"Easing.js":1,"Tween.js":2}]},{},[1,2,3]);
 
 
